@@ -1,7 +1,6 @@
 ---
 date: 2016-11-27 16:57:04
 title: How to install mlpack on windows
-desc: Let's install mlpack on windows with less pain
 author: Keon Kim
 categories:
   - mlpack

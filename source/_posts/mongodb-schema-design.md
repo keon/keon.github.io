@@ -33,10 +33,11 @@ Each methods for structuring has its pros and cons. So the user should know how 
 }
 ```
 
-### Pros
+**Pros**
 - You can call all the information in one query
 
-### Cons
+**Cons**
+
 - It is impossible to search the contained entity independently.
 
 ## One-to-Many
@@ -74,12 +75,11 @@ Parent holds the list of ObjectID of the child documents. This requires an appli
                   }).toArray() ;
 ```
 
-### Pros
-
+**Pros**
 * It is easy to handle insert, delete on each documents independently.
 * It has flexibility for implementing N-to-N relationship because it is an application level join.
 
-### Cons
+**Cons**
 
 * Performance drops as you call documents multiple times.
 
@@ -138,13 +138,11 @@ Later you can join like below.
 
 We put references on bot sides in order to find the opposite document in one-to-many relationship.
 
-### Pros
-
+**Pros**
 * It is easy to search on both Person and Task documents
 
 
-### Cons
-
+**Cons**
 * It requires two separate queries to update an item. The update is not atomic.
 
 ## Many-to-One Denormalization
@@ -189,11 +187,11 @@ You can use it like below in the application level:
                           .toArray();
 ```
 
-### Pros
+**Pros**
 
 * Denormalization reduces the cost of calling the data. 
 
-### Cons
+**Cons**
 
 * When you want to update the part name, you have to update all names contained inside product document
 * It is not a good choice when updates are frequent
@@ -294,24 +292,17 @@ db.hosts.update( {_id: host_id }, {
 
 Here are some “rules of thumb” to guide you through these indenumberable (but not infinite) choices
 
-### One
+1. favor embedding unless there is a compelling reason not to
 
-favor embedding unless there is a compelling reason not to
+2. needing to access an object on its own is a compelling reason not to embed it
 
-### Two
-needing to access an object on its own is a compelling reason not to embed it
+3. Arrays should not grow without bound. If there are more than a couple of hundred documents on the “many” side, don’t embed them; if there are more than a few thousand documents on the “many” side, don’t use an array of ObjectID references. High-cardinality arrays are a compelling reason not to embed.
 
-### Three
-Arrays should not grow without bound. If there are more than a couple of hundred documents on the “many” side, don’t embed them; if there are more than a few thousand documents on the “many” side, don’t use an array of ObjectID references. High-cardinality arrays are a compelling reason not to embed.
+4. Don’t be afraid of application-level joins: if you index correctly and use the projection specifier then application-level joins are barely more expensive than server-side joins in a relational database.
 
-### Four
-Don’t be afraid of application-level joins: if you index correctly and use the projection specifier then application-level joins are barely more expensive than server-side joins in a relational database.
+5. Consider the write/read ratio when denormalizing. A field that will mostly be read and only seldom updated is a good candidate for denormalization: if you denormalize a field that is updated frequently then the extra work of finding and updating all the instances is likely to overwhelm the savings that you get from denormalizing.
 
-### Five
-Consider the write/read ratio when denormalizing. A field that will mostly be read and only seldom updated is a good candidate for denormalization: if you denormalize a field that is updated frequently then the extra work of finding and updating all the instances is likely to overwhelm the savings that you get from denormalizing.
-
-### Six
-As always with MongoDB, how you model your data depends – entirely – on your particular application’s data access patterns. You want to structure your data to match the ways that your application queries and updates it.
+6. As always with MongoDB, how you model your data depends – entirely – on your particular application’s data access patterns. You want to structure your data to match the ways that your application queries and updates it.
 
 
 ## References

@@ -65,13 +65,11 @@ Keras makes it really simple to implement basic neural network. The code below c
 model = Sequential()
  
 # Dense is the basic form of a neural network layer
-# Input Layer 4 and Hidden Layer with 128 nodes
-model.add(Dense(64, input_dim=4, activation='tanh')) 
+# Input Layer 4 and Hidden Layer with 20 nodes
+model.add(Dense(20, input_dim=4, activation='tanh')) 
 # Hidden layer with 128 nodes
-model.add(Dense(128, activation='tanh'))
-# Hidden layer with 128 nodes
-model.add(Dense(128, activation='tanh'))
-# Output Layer with 2 nodes
+model.add(Dense(20, activation='tanh'))
+# Output Layer with 2 nodes (left, right)
 model.add(Dense(2, activation='linear'))
  
 # Create the model based on the information above

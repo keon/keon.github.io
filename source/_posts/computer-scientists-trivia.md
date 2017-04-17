@@ -10,14 +10,14 @@ categories:
 It is crucial for programmers to understand how long a certain operation takes in and out of a computer. For example, fetching a word from cache, memory, disk, and from other computers.
 Inspired by [Teach Yourself Programming in Ten Years](http://norvig.com/21-days.html#answers), I would like to discuss this in a little more detail. (Most information is taken from [here](https://gist.github.com/jboner/2841832))
 
-<!--more-->
-
 The analogy is:
 
 + L1 Cache - There is a sandwich in front of you.
 + L2 Cache - Walk to the kitchen and make a sandwich
 + RAM - Drive to the store, purchase sandwich fixings, drive home and make sandwich
 + Hard Drive - Drive to the store. purchase seeds. grow seeds, harvest lettuce, wheat, etc. Make sandwich.
+
+<!--more-->
 
 To be more specific:
 
