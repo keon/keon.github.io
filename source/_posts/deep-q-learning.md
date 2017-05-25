@@ -83,7 +83,7 @@ In order for a neural net to understand and predict based on the environment dat
 This training process makes the neural net to predict the reward value from a certain `state`.
 
 ```python
-model.fit(state, reward_value, nb_epoch=1, verbose=0)
+model.fit(state, reward_value, epochs=1, verbose=0)
 ```
 
 After training, the model now can predict the output from unseen input. When you call `predict()` function on the model, the model will predict the reward of current state based on the data you trained. Like so:
@@ -98,12 +98,13 @@ prediction = model.predict(state)
 
 Normally in games, the *reward* directly relates to the score of the game. Imagine a situation where the pole from CartPole game is tilted to the right. The expected future reward of pushing right button will then be higher than that of pushing the left button since it could yield higher score of the game as the pole survives longer.
 
-In order to logically represent this intuition and train it, we need a loss value to optimize on. The loss is just a value that indicates how far our prediction is from the actual target. For example, the prediction of the model could indicate that it sees more value in pushing the right button when in fact it can gain more reward by pushing the left button. We want to decrease the gap between the prediction and the target. We will define our loss function as follows:
+In order to logically represent this intuition and train it, we need to express this as a formula that we can optimize on. The loss is just a value that indicates how far our prediction is from the actual target. For example, the prediction of the model could indicate that it sees more value in pushing the right button when in fact it can gain more reward by pushing the left button. We want to decrease this gap between the prediction and the target (loss). We will define our loss function as follows:
 
 <img src="/images/deep-q-learning/deep-q-learning.png" alt="deep-q-learning" style="max-width: 500px;"/>
 <p style="text-align:center; font-style:italic; font-size: 12px">Mathematical representation of Q-learning from Taehoon Kim's <a href="https://www.slideshare.net/carpedm20/ai-67616630">slides</a> </p>
 
-We first carry out an action *a*, and observe the reward *r* and resulting new state *s\`*. Based on the new state, we calculate the target Q hat by selecting the action that gives maximum Q-value. We then need to discount this reward so that the future reward is worth less than immediate reward (It is a same concept as interest rate for money. Immediate payment always worth more for same amount of money). Lastly, we apply the current reward and subtract it from our current prediction to calculate the loss. Squaring this value allows us to punish the large loss value more and treat the negative values same as the positive values. The approximation of the Q-value converges to the true Q-value as we repeat the updating process. The loss will decrease and score will grow higher.
+We first carry out an action *a*, and observe the reward *r* and resulting new state *s\`*. Based on the result, we calculate the maximum target Q and then discount it so that the future reward is worth less than immediate reward (It is a same concept as interest rate for money. Immediate payment always worth more for same amount of money). Lastly, we add the current reward to the discounted future reward to get the target value. Subtracting our current prediction from the target gives the loss. Squaring this value allows us to punish the large loss value more and treat the negative values same as the positive values.
+
 
 Keras takes care of the most of the difficult tasks for us. We just need to define our target. We can express the target in a magical one-liner in python. 
 
@@ -111,7 +112,7 @@ Keras takes care of the most of the difficult tasks for us. We just need to defi
 target = reward + gamma * np.amax(model.predict(next_state))
 ```
 
-Keras does all the work of subtracting the target from the neural network output and squaring it. It also applies the learning rate we defined while creating the neural network model. This all happens inside the `fit()` function.
+Keras does all the work of subtracting the target from the neural network output and squaring it. It also applies the learning rate we defined while creating the neural network model. This all happens inside the `fit()` function. This function decreases the gap between our prediction to target by the learning rate. The approximation of the Q-value converges to the true Q-value as we repeat the updating process. The loss will decrease and score will grow higher.
 
 
 The most notable features of the DQN algorithm are *remember* and *replay* methods. Both are pretty simple concepts. The original DQN architecture contains a several more tweaks for better training, but we are going to stick to a simpler version for now.
@@ -138,39 +139,39 @@ Simple right?
 
 ## Replay
 
-A method that trains the neural net with experiences in the `memory` is called `replay()`. First, we sample some experiences from the `memory` and call them `bathces`.
+A method that trains the neural net with experiences in the `memory` is called `replay()`. First, we sample some experiences from the `memory` and call them `minibath`.
 
 ```python
-batches = min(batch_size, len(self.memory))
-batches = np.random.choice(len(self.memory), batches)
+minibatch = random.sample(self.memory, batch_size)
 ```
 
-The above code will make `batches` a randomly sampled indexes of the memories. For example, if batches are [1,5,2,7], each number represents the indexes of the memory 1, 5, 2, and 7.
+The above code will make `minibatch`, which is just a randomly sampled elements of the memories of size `batch_size`. We set the batch size as 32 for this example.
 
 To make the agent perform well in long-term, we need to take into account not only the immediate rewards but also the future rewards we are going to get. In order to do this, we are going to have a 'discount rate' or 'gamma'. This way the agent will learn to maximize the discounted future reward based on the given state.
 
 ```python
-for i in batches:
+# Sample minibatch from the memory
+minibatch = random.sample(self.memory, batch_size)
 
-    # Extract informations from i-th index of the memory
-    state, action, reward, next_state = self.memory[i]
-  
-    # if done, make our target reward (-100 penality)
+# Extract informations from each memory
+for state, action, reward, next_state, done in minibatch:
+ 
+    # if done, make our target reward
     target = reward
-  
+ 
     if not done:
       # predict the future discounted reward
       target = reward + self.gamma * \
                np.amax(self.model.predict(next_state)[0])
-    
+ 
     # make the agent to approximately map
     # the current state to future discounted reward
     # We'll call that target_f
     target_f = self.model.predict(state)
     target_f[0][action] = target
-    
+ 
     # Train the Neural Net with the state and target_f
-    self.model.fit(state, target_f, nb_epoch=1, verbose=0)
+    self.model.fit(state, target_f, epochs=1, verbose=0)
 ```
 
 <br/>
@@ -225,7 +226,7 @@ class DQNAgent:
         self.model = self._build_model()
 
     def _build_model(self):
-        # Neural Net for Deep Q-learning Model
+        # Neural Net for Deep-Q learning Model
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation='relu'))
         model.add(Dense(24, activation='relu'))
@@ -243,18 +244,16 @@ class DQNAgent:
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
 
-    def replay(self, batch_size)in :
-        batches = min(batch_size, len(self.memory))
-        batches = np.random.choice(len(self.memory), batches)
-        for i in batches:
-            state, action, reward, next_state, done = self.memory[i]
+    def replay(self, batch_size):
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
               target = reward + self.gamma * \
                        np.amax(self.model.predict(next_state)[0])
             target_f = self.model.predict(state)
             target_f[0][action] = target
-            self.model.fit(state, target_f, nb_epoch=1, verbose=0)
+            self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 ```
