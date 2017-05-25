@@ -1,6 +1,6 @@
 ---
 date: 2017-02-06 12:00:00
-title: Deep Q Learning with Keras and Gym
+title: Deep Q-Learning with Keras and Gym
 author: Keon Kim
 categories:
   - rl
@@ -9,7 +9,7 @@ categories:
 
 ![animation](/images/deep-q-learning/animation.gif)
 
-This blog post will demonstrate how deep reinforcement learning (deep q learning) can be implemented and applied to play a CartPole game using Keras and Gym, **in only 78 lines of code**!
+This blog post will demonstrate how deep reinforcement learning (deep Q-learning) can be implemented and applied to play a CartPole game using Keras and Gym, **in less than 100 lines of code**!
 
 I'll explain everything without requiring any prerequisite knowledge about reinforcement learning.
 <!--more-->
@@ -19,17 +19,17 @@ The code used for this article is on [GitHub.](https://github.com/keon/deep-q-le
 
 ![rl](/images/deep-q-learning/rl.png)
 
-*Reinforcement Learning* is a type of machine learning that allows you to create AI agents that learn from the environment by interacting with it. Just like how we learn to ride a bicycle, this kind of AI learns by trial and error. As seen in the picture, the brain represents the AI agent, which acts on the environment. After each action, the agent receives the feedback. The feedback consists of the reward and next state of the environment. Reward is usually defined by a human. If we use the analogy of the bicycle, we can define reward as the distance from the original starting point.
+*Reinforcement Learning* is a type of machine learning that allows you to create AI agents that learn from the environment by interacting with it. Just like how we learn to ride a bicycle, this kind of AI learns by trial and error. As seen in the picture, the brain represents the AI agent, which acts on the environment. After each action, the agent receives the feedback. The feedback consists of the reward and next state of the environment. The reward is usually defined by a human. If we use the analogy of the bicycle, we can define reward as the distance from the original starting point.
 
 <br/>
 ## Deep Reinforcement Learning
 
-Google's DeepMind published its famous paper [*Playing Atari with Deep Reinforcement Learning*](https://arxiv.org/abs/1312.5602), in which they introduced a new algorithm called **Deep Q Network** (DQN for short) in 2013. It demonstrated how an AI agent can learn to play games by just observing the screen without any prior information about those games. The result turned out to be pretty impressive. This paper opened the era of what is called 'deep reinforcement learning', a mix of deep learing and reinforcement learning.
+Google's DeepMind published its famous paper [*Playing Atari with Deep Reinforcement Learning*](https://arxiv.org/abs/1312.5602), in which they introduced a new algorithm called **Deep Q Network** (DQN for short) in 2013. It demonstrated how an AI agent can learn to play games by just observing the screen without any prior information about those games. The result turned out to be pretty impressive. This paper opened the era of what is called 'deep reinforcement learning', a mix of deep learning and reinforcement learning.
 
 [Click to Watch: DeepMind's Atari Player](https://www.youtube.com/watch?v=V1eYniJ0Rnk)
 ![atari](/images/deep-q-learning/atari.png)
 
-In *Q Learning Algorithm*, there is a function called **Q Function**, which is used to approximate the reward based on a state. Similarly in *Deep Q Network* algorithm, we use a neural network to approximate the reward based on the state. We will discuss how this works in detail.
+In *Q-Learning Algorithm*, there is a function called **Q Function**, which is used to approximate the reward based on a state. We call it **Q(s,a)**, where Q is a function which calculates the expected future value from state *s* and action *a*. Similarly in *Deep Q Network* algorithm, we use a neural network to approximate the reward based on the state. We will discuss how this works in detail.
 
 <br/>
 
@@ -47,16 +47,17 @@ next_state, reward, done, info = env.step(action)
 
 As we discussed above, action can be either 0 or 1. If we pass those numbers, `env`, which represents the game environment, will emit the results. `done` is a boolean value telling whether the game ended or not. The old `state`information paired with `action` and `next_state` and `reward` is the information we need for training the agent.
 
-<br/>
-## Implementing Simple Nerual Network using Keras
 
-This post is not about deep learning or neural net. So we will consider neural net as just a black box algorithm. An algorithm that learns on the pairs of example input and output data, detects some kind of patterns, and predicts the output based on an unseen input data. But we should understand which part is the neural net in the DQN algorithm.
+<br/>
+## Implementing Simple Neural Network using Keras
+
+This post is not about deep learning or neural net. So we will consider neural net as just a black box algorithm that approximately maps inputs to outputs. It is basically an algorithm that learns on the pairs of examples input and output data, detects some kind of patterns, and predicts the output based on an unseen input data. Though neural network itself is not the focus of this article, we should understand how it is used in the DQN algorithm.
 
 ![neuralnet](/images/deep-q-learning/neuralnet.png)
 
 Note that the neural net we are going to use is similar to the diagram above. We will have one input layer that receives 4 information and 3 hidden layers. But we are going to have 2 nodes in the output layer since there are two buttons (0 and 1) for the game.
 
-Keras makes it really simple to implement basic neural network. The code below creates an empty neural net model. `activation`, `loss` and `optimizer` are the parameters that define the characteristics of the neural network, but we are not going to discuss it here.
+Keras makes it really simple to implement a basic neural network. The code below creates an empty neural net model. `activation`, `loss` and `optimizer` are the parameters that define the characteristics of the neural network, but we are not going to discuss it here.
 
 ```python
 # Neural Net for Deep Q Learning
@@ -64,28 +65,28 @@ Keras makes it really simple to implement basic neural network. The code below c
 # Sequential() creates the foundation of the layers.
 model = Sequential()
  
-# Dense is the basic form of a neural network layer
-# Input Layer 4 and Hidden Layer with 20 nodes
-model.add(Dense(20, input_dim=4, activation='tanh')) 
-# Hidden layer with 128 nodes
-model.add(Dense(20, activation='tanh'))
-# Output Layer with 2 nodes (left, right)
-model.add(Dense(2, activation='linear'))
+# 'Dense' is the basic form of a neural network layer
+# Input Layer of state size(4) and Hidden Layer with 24 nodes
+model.add(Dense(24, input_dim=self.state_size, activation='relu'))
+# Hidden layer with 24 nodes
+model.add(Dense(24, activation='relu'))
+# Output Layer with # of actions: 2 nodes (left, right)
+model.add(Dense(self.action_size, activation='linear'))
  
 # Create the model based on the information above
 model.compile(loss='mse',
-              optimizer=RMSprop(lr=self.learning_rate))
+              optimizer=Adam(lr=self.learning_rate))
 ```
 
-In order for a neural net to understand and predict based on the environment data, we have to feed it the information. `fit()` method feeds `states` and `target_f` information to the model, which I explain below. You can ignore the rest parameters.
+In order for a neural net to understand and predict based on the environment data, we have to feed it the information. `fit()` method feeds input and output pairs to the model. Then the model will train on those data to approximate the output based on the input.
 
-This training process makes the neural net to predict the reward value (`target_f`) from a certain `state`.
+This training process makes the neural net to predict the reward value from a certain `state`.
 
 ```python
-model.fit(state, target_f, nb_epoch=1, verbose=0)
+model.fit(state, reward_value, nb_epoch=1, verbose=0)
 ```
 
-When you call `predict()` function on the model, the model will predict the reward of current state based on the data you trained.
+After training, the model now can predict the output from unseen input. When you call `predict()` function on the model, the model will predict the reward of current state based on the data you trained. Like so:
 
 ```python
 prediction = model.predict(state)
@@ -93,13 +94,31 @@ prediction = model.predict(state)
 
 
 <br/>
-## Implementing Deep Q Network (DQN)
+## Implementing Mini Deep Q Network (DQN)
 
-The most notable features of the DQN algorithm are *remember* and *replay* methods. Both are pretty simple concepts.
+Normally in games, the *reward* directly relates to the score of the game. Imagine a situation where the pole from CartPole game is tilted to the right. The expected future reward of pushing right button will then be higher than that of pushing the left button since it could yield higher score of the game as the pole survives longer.
+
+In order to logically represent this intuition and train it, we need a loss value to optimize on. The loss is just a value that indicates how far our prediction is from the actual target. For example, the prediction of the model could indicate that it sees more value in pushing the right button when in fact it can gain more reward by pushing the left button. We want to decrease the gap between the prediction and the target. We will define our loss function as follows:
+
+<img src="/images/deep-q-learning/deep-q-learning.png" alt="deep-q-learning" style="max-width: 500px;"/>
+<p style="text-align:center; font-style:italic; font-size: 12px">Mathematical representation of Q-learning from Taehoon Kim's <a href="https://www.slideshare.net/carpedm20/ai-67616630">slides</a> </p>
+
+We first carry out an action *a*, and observe the reward *r* and resulting new state *s\`*. Based on the new state, we calculate the target Q hat by selecting the action that gives maximum Q-value. We then need to discount this reward so that the future reward is worth less than immediate reward (It is a same concept as interest rate for money. Immediate payment always worth more for same amount of money). Lastly, we apply the current reward and subtract it from our current prediction to calculate the loss. Squaring this value allows us to punish the large loss value more and treat the negative values same as the positive values. The approximation of the Q-value converges to the true Q-value as we repeat the updating process. The loss will decrease and score will grow higher.
+
+Keras takes care of the most of the difficult tasks for us. We just need to define our target. We can express the target in a magical one-liner in python. 
+
+```python
+target = reward + gamma * np.amax(model.predict(next_state))
+```
+
+Keras does all the work of subtracting the target from the neural network output and squaring it. It also applies the learning rate we defined while creating the neural network model. This all happens inside the `fit()` function.
+
+
+The most notable features of the DQN algorithm are *remember* and *replay* methods. Both are pretty simple concepts. The original DQN architecture contains a several more tweaks for better training, but we are going to stick to a simpler version for now.
 
 ## Remember
 
-One of the challenges for DQN is that neural network used in the algorithm tends to forget the previous experiences as it overwrites them with new experiences. So we need an list of previous experiences and observations to re-train the model with the previous experiences. We will call this array of experiences `memory` and use `remember()` function to append state, action, reward, and next state to the memory.
+One of the challenges for DQN is that neural network used in the algorithm tends to forget the previous experiences as it overwrites them with new experiences. So we need a list of previous experiences and observations to re-train the model with the previous experiences. We will call this array of experiences `memory` and use `remember()` function to append state, action, reward, and next state to the memory.
 
 In our example, the memory list will have a form of:
 ```python
@@ -126,9 +145,9 @@ batches = min(batch_size, len(self.memory))
 batches = np.random.choice(len(self.memory), batches)
 ```
 
-The above code will make `batches` a randomly sampled indexes of the memories. For example, if batches is [1,5,2,7], each number represents the indexes of the memory 1, 5, 2, and 7.
+The above code will make `batches` a randomly sampled indexes of the memories. For example, if batches are [1,5,2,7], each number represents the indexes of the memory 1, 5, 2, and 7.
 
-To make the agent perform well in long-term, we need to take into account not only the immediate rewards, but also the future rewards we are going to get. In order to do this, we are going to have a 'discount rate' or 'gamma'. This way the agent will learn to maximize the discounted future reward based on the given state.
+To make the agent perform well in long-term, we need to take into account not only the immediate rewards but also the future rewards we are going to get. In order to do this, we are going to have a 'discount rate' or 'gamma'. This way the agent will learn to maximize the discounted future reward based on the given state.
 
 ```python
 for i in batches:
@@ -157,7 +176,7 @@ for i in batches:
 <br/>
 ## How The Agent Decides to Act
 
-Our agent will randomly select its action at first by certain percentage, called 'exploration rate' or 'epsilon'. This is because at first, it is better for the agent to try all kinds of things before it starts to see the patterns.  When it is not deciding the action randomly, the agent will predict the reward value based on the current state, and pick the action that will give the highest reward. `np.argmax()` is the function that picks the highest value between two elements in the `act_values[0]`.
+Our agent will randomly select its action at first by a certain percentage, called 'exploration rate' or 'epsilon'. This is because at first, it is better for the agent to try all kinds of things before it starts to see the patterns.  When it is not deciding the action randomly, the agent will predict the reward value based on the current state and pick the action that will give the highest reward. `np.argmax()` is the function that picks the highest value between two elements in the `act_values[0]`.
 
 ```python
 def act(self, state):
@@ -177,9 +196,9 @@ def act(self, state):
 <br/>
 ## Hyper Parameters
 
-There are some parameters that has to be passed to an reinforcement learning agent. You will see these over and over again.
+There are some parameters that have to be passed to a reinforcement learning agent. You will see these over and over again.
 
-* `episodes` - number of games we want the agent to play.
+* `episodes` - a number of games we want the agent to play.
 * `gamma` - aka decay or discount rate, to calculate the future discounted reward.
 * `epsilon` - aka exploration rate, this is the rate in which an agent randomly decides its action rather than prediction.
 * `epsilon_decay` - we want to decrease the number of explorations as it gets good at playing games.
@@ -187,43 +206,44 @@ There are some parameters that has to be passed to an reinforcement learning age
 * `learning_rate` - Determines how much neural net learns in each iteration.
 
 <br/>
-## Putting It All Together: Coding The Deep Q Learning Agent
+## Putting It All Together: Coding The Deep Q-Learning Agent
 
-I explained each parts of the agent in the above. The code below implements everything we've talked about as a nice and clean class called `DQNAgent`.
+I explained each part of the agent in the above. The code below implements everything we've talked about as a nice and clean class called `DQNAgent`.
 
 ```python
-# Deep-Q learning Agent
+# Deep Q-learning Agent
 class DQNAgent:
-    def __init__(self, env):
-        self.env = env
-        self.memory = []
-        self.gamma = 0.9  # decay rate
-        self.epsilon = 1  # exploration
-        self.epsilon_decay = .995
-        self.epsilon_min = 0.1
-        self.learning_rate = 0.0001
-        self._build_model()
-    
+    def __init__(self, state_size, action_size):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.memory = deque(maxlen=2000)
+        self.gamma = 0.95    # discount rate
+        self.epsilon = 1.0  # exploration rate
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.001
+        self.model = self._build_model()
+
     def _build_model(self):
+        # Neural Net for Deep Q-learning Model
         model = Sequential()
-        model.add(Dense(128, input_dim=4, activation='tanh'))
-        model.add(Dense(128, activation='tanh'))
-        model.add(Dense(128, activation='tanh'))
-        model.add(Dense(2, activation='linear'))
+        model.add(Dense(24, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(24, activation='relu'))
+        model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse',
-                      optimizer=RMSprop(lr=self.learning_rate))
-        self.model = model
-    
+                      optimizer=Adam(lr=self.learning_rate))
+        return model
+
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
-    
+
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            return env.action_space.sample()
+            return random.randrange(self.action_size)
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
-    
-    def replay(self, batch_size):
+
+    def replay(self, batch_size)in :
         batches = min(batch_size, len(self.memory))
         batches = np.random.choice(len(self.memory), batches)
         for i in batches:
@@ -259,9 +279,9 @@ if __name__ == "__main__":
         state = np.reshape(state, [1, 4])
   
         # time_t represents each frame of the game
-        # Our goal is to keep the pole upright as long as possible
+        # Our goal is to keep the pole upright as long as possible until score of 500
         # the more time_t the more score
-        for time_t in range(5000):
+        for time_t in range(500):
             # turn this on if you want to render
             # env.render()
   
@@ -269,19 +289,15 @@ if __name__ == "__main__":
             action = agent.act(state)
   
             # Advance the game to the next frame based on the action.
+            # Reward is 1 for every frame the pole survived
             next_state, reward, done, _ = env.step(action)
             next_state = np.reshape(next_state, [1, 4])
-  
-            # (reward defaults to 1)
-            # reward the agent 1 for every frame it lived
-            # and punish -100 for dying
-            reward = -100 if done else reward
   
             # Remember the previous state, action, reward, and done
             agent.remember(state, action, reward, next_state, done)
   
             # make next_state the new current state for the next frame.
-            state = copy.deepcopy(next_state)
+            state = next_state
   
             # done becomes True when the game ends
             # ex) The agent drops the pole
@@ -321,5 +337,8 @@ The code used for this article is on [GitHub.](https://github.com/keon/deep-q-le
 
 ## References
 
-* [*Playing Atari with Deep Reinforcement Learning*](https://arxiv.org/abs/1312.5602)
+* [Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
 * [Human-level Control Through Deep Reinforcement Learning](http://home.uchicago.edu/~arij/journalclub/papers/2015_Mnih_et_al.pdf)
+* [딥러닝과 강화 학습으로 나보다 잘하는 쿠키런 AI 구현하기 DEVIEW 2016](https://www.slideshare.net/carpedm20/ai-67616630)
+* [Reinforcement Learning Examples by RLCode](https://github.com/rlcode/reinforcement-learning)
+* [Demystifying Deep Reinforcement Learning](https://www.nervanasys.com/demystifying-deep-reinforcement-learning/)
