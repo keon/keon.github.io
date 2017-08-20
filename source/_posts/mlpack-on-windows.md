@@ -6,7 +6,7 @@ categories:
   - mlpack
 ---
 
-
+<img src="/images/mlpack-on-windows/mlpack.svg" style="background-color:rgba(0,0,0,0);" height=150 alt="mlpack: a scalable C++ machine learning library">
 I usually use Vim on Ubuntu for any type of development.
 Lately I tried installing mlpack on Windows 10 to try programming on Visual Studio 2015, which I heard is very good for debugging.
 
@@ -33,7 +33,7 @@ First, create a project folder. For this example, I used `C:/projects/` folder. 
 
 ![step2-1](/images/mlpack-on-windows/1.png)
 
-open Visual Studio and click `File > New > Project from Existing Code`. 
+open Visual Studio and click `File > New > Project from Existing Code`.
 
 ![step2-2](/images/mlpack-on-windows/2.png)
 ![step2-3](/images/mlpack-on-windows/3.png)
@@ -45,7 +45,7 @@ Next, it is time to download the dependencies using NuGet. NuGet is something li
 
 ![step2-4](/images/mlpack-on-windows/4.png)
 
-Go to `Tools > NuGet Package Manager > Manage NuGet Packages for Solution` and click `Browse` tab. 
+Go to `Tools > NuGet Package Manager > Manage NuGet Packages for Solution` and click `Browse` tab.
 
 ![step2-5](/images/mlpack-on-windows/5.png)
 
@@ -99,11 +99,11 @@ cmake -G "Visual Studio 14 2015 Win64" -DBLAS_LIBRARY:FILEPATH="C:/projects/mlpa
 If you used different directories other than ones used in this example, you must change the input accordingly. I broke the lines so that it is easier for you to edit.
 
 ```
-cmake 
--G "Visual Studio 14 2015 Win64" 
--DBLAS_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a" 
--DLAPACK_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a" 
--DCMAKE_PREFIX:FILEPATH="C:/projects/armadillo" 
+cmake
+-G "Visual Studio 14 2015 Win64"
+-DBLAS_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a"
+-DLAPACK_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a"
+-DCMAKE_PREFIX:FILEPATH="C:/projects/armadillo"
 -DBUILD_SHARED_LIBS=OFF ..
 ```
 
@@ -129,11 +129,11 @@ cmake -G "Visual Studio 14 2015 Win64" -DBLAS_LIBRARY:FILEPATH="C:/projects/mlpa
 Again, if you used different directories along the way, you must edit it accordingly. I broke down the flags for you.
 
 ```
-cmake 
+cmake
 -G "Visual Studio 14 2015 Win64"
 -DBLAS_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a"
 -DLAPACK_LIBRARY:FILEPATH="C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a"
--DARMADILLO_INCLUDE_DIR="C:/projects/armadillo-7.100.3/include" 
+-DARMADILLO_INCLUDE_DIR="C:/projects/armadillo-7.100.3/include"
 -DARMADILLO_LIBRARY:FILEPATH="C:/projects/armadillo-7.100.3/build/Debug/armadillo.lib"
 -DBOOST_INCLUDEDIR:PATH="C:/projects/mlpack-2.0.1/packages/boost.1.60.0.0/lib/native/include"
 -DBOOST_LIBRARYDIR:PATH="C:/projects/mlpack-2.0.1/packages/boost_libs"
@@ -142,7 +142,7 @@ cmake
 
 ![step3-16](/images/mlpack-on-windows/16.png)
 
-now open the `mlpack.sln` file (under the build folder) with Visual Studio. 
+now open the `mlpack.sln` file (under the build folder) with Visual Studio.
 
 ![step3-17](/images/mlpack-on-windows/17.png)
 

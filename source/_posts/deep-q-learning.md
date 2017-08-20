@@ -61,10 +61,10 @@ Keras makes it really simple to implement a basic neural network. The code below
 
 ```python
 # Neural Net for Deep Q Learning
- 
+
 # Sequential() creates the foundation of the layers.
 model = Sequential()
- 
+
 # 'Dense' is the basic form of a neural network layer
 # Input Layer of state size(4) and Hidden Layer with 24 nodes
 model.add(Dense(24, input_dim=self.state_size, activation='relu'))
@@ -72,7 +72,7 @@ model.add(Dense(24, input_dim=self.state_size, activation='relu'))
 model.add(Dense(24, activation='relu'))
 # Output Layer with # of actions: 2 nodes (left, right)
 model.add(Dense(self.action_size, activation='linear'))
- 
+
 # Create the model based on the information above
 model.compile(loss='mse',
               optimizer=Adam(lr=self.learning_rate))
@@ -100,13 +100,16 @@ Normally in games, the *reward* directly relates to the score of the game. Imagi
 
 In order to logically represent this intuition and train it, we need to express this as a formula that we can optimize on. The loss is just a value that indicates how far our prediction is from the actual target. For example, the prediction of the model could indicate that it sees more value in pushing the right button when in fact it can gain more reward by pushing the left button. We want to decrease this gap between the prediction and the target (loss). We will define our loss function as follows:
 
-<img src="/images/deep-q-learning/deep-q-learning.png" alt="deep-q-learning" style="max-width: 500px;"/>
-<p style="text-align:center; font-style:italic; font-size: 12px">Mathematical representation of Q-learning from Taehoon Kim's <a href="https://www.slideshare.net/carpedm20/ai-67616630">slides</a> </p>
+<img src="/images/deep-q-learning/deep-q-learning.png" alt="deep-q-learning" style="width:100%; max-width: 500px;"/>
+<p style="text-align:center; font-style:italic; font-size: 12px">
+  Mathematical representation of Q-learning from Taehoon Kim's
+  <a href="https://www.slideshare.net/carpedm20/ai-67616630">slides</a>
+</p>
 
 We first carry out an action *a*, and observe the reward *r* and resulting new state *s\`*. Based on the result, we calculate the maximum target Q and then discount it so that the future reward is worth less than immediate reward (It is a same concept as interest rate for money. Immediate payment always worth more for same amount of money). Lastly, we add the current reward to the discounted future reward to get the target value. Subtracting our current prediction from the target gives the loss. Squaring this value allows us to punish the large loss value more and treat the negative values same as the positive values.
 
 
-Keras takes care of the most of the difficult tasks for us. We just need to define our target. We can express the target in a magical one-liner in python. 
+Keras takes care of the most of the difficult tasks for us. We just need to define our target. We can express the target in a magical one-liner in python.
 
 ```python
 target = reward + gamma * np.amax(model.predict(next_state))
@@ -155,21 +158,21 @@ minibatch = random.sample(self.memory, batch_size)
 
 # Extract informations from each memory
 for state, action, reward, next_state, done in minibatch:
- 
+
     # if done, make our target reward
     target = reward
- 
+
     if not done:
       # predict the future discounted reward
       target = reward + self.gamma * \
                np.amax(self.model.predict(next_state)[0])
- 
+
     # make the agent to approximately map
     # the current state to future discounted reward
     # We'll call that target_f
     target_f = self.model.predict(state)
     target_f[0][action] = target
- 
+
     # Train the Neural Net with the state and target_f
     self.model.fit(state, target_f, epochs=1, verbose=0)
 ```
@@ -184,10 +187,10 @@ def act(self, state):
     if np.random.rand() <= self.epsilon:
         # The agent acts randomly
         return env.action_space.sample()
-  
+
     # Predict the reward value based on the given state
     act_values = self.model.predict(state)
-  
+
     # Pick the action based on the predicted reward
     return np.argmax(act_values[0])
 ```
@@ -265,39 +268,39 @@ The training part is even shorter. I'll explain in the comments.
 
 ```python
 if __name__ == "__main__":
-  
+
     # initialize gym environment and the agent
     env = gym.make('CartPole-v0')
     agent = DQNAgent(env)
-  
+
     # Iterate the game
     for e in range(episodes):
-  
+
         # reset state in the beginning of each game
         state = env.reset()
         state = np.reshape(state, [1, 4])
-  
+
         # time_t represents each frame of the game
         # Our goal is to keep the pole upright as long as possible until score of 500
         # the more time_t the more score
         for time_t in range(500):
             # turn this on if you want to render
             # env.render()
-  
+
             # Decide action
             action = agent.act(state)
-  
+
             # Advance the game to the next frame based on the action.
             # Reward is 1 for every frame the pole survived
             next_state, reward, done, _ = env.step(action)
             next_state = np.reshape(next_state, [1, 4])
-  
+
             # Remember the previous state, action, reward, and done
             agent.remember(state, action, reward, next_state, done)
-  
+
             # make next_state the new current state for the next frame.
             state = next_state
-  
+
             # done becomes True when the game ends
             # ex) The agent drops the pole
             if done:
