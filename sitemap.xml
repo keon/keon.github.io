@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://keon.io/computer-scientists-trivia/</loc>
+    
+    <lastmod>2017-09-03T04:05:15.228Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://keon.io/deep-q-learning/</loc>
+    
+    <lastmod>2017-09-03T04:05:15.228Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://keon.io/mlpack-on-windows/</loc>
+    
+    <lastmod>2017-09-03T04:05:15.228Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://keon.io/mongodb-schema-design/</loc>
+    
+    <lastmod>2017-09-03T04:05:15.228Z</lastmod>
+    
+  </url>
+  
+</urlset>

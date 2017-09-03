@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Keon&#39;s Blog</title>
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://keon.io/"/>
+  <updated>2017-09-03T04:05:15.228Z</updated>
+  <id>http://keon.io/</id>
+  
+  <author>
+    <name>Keon Kim</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Deep Q-Learning with Keras and Gym</title>
+    <link href="http://keon.io/deep-q-learning/"/>
+    <id>http://keon.io/deep-q-learning/</id>
+    <published>2017-02-06T17:00:00.000Z</published>
+    <updated>2017-09-03T04:05:15.228Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/deep-q-learning/animation.gif" alt="animation"></p>
+<p>This blog post will demonstrate how deep reinforcement learning (deep Q-learning) can be implemented and applied to play a CartPole game using Keras and Gym, <strong>in less than 100 lines of code</strong>!</p>
+<p>I’ll explain everything without requiring any prerequisite knowledge about reinforcement learning.<br><a id="more"></a><br>The code used for this article is on <a href="https://github.com/keon/deep-q-learning" target="_blank" rel="external">GitHub.</a><br><br></p>
+<h2 id="Reinforcement-Learning"><a href="#Reinforcement-Learning" class="headerlink" title="Reinforcement Learning"></a>Reinforcement Learning</h2><p><img src="/images/deep-q-learning/rl.png" alt="rl"></p>
+<p><em>Reinforcement Learning</em> is a type of machine learning that allows you to create AI agents that learn from the environment by interacting with it. Just like how we learn to ride a bicycle, this kind of AI learns by trial and error. As seen in the picture, the brain represents the AI agent, which acts on the environment. After each action, the agent receives the feedback. The feedback consists of the reward and next state of the environment. The reward is usually defined by a human. If we use the analogy of the bicycle, we can define reward as the distance from the original starting point.</p>
+<p><br></p>
+<h2 id="Deep-Reinforcement-Learning"><a href="#Deep-Reinforcement-Learning" class="headerlink" title="Deep Reinforcement Learning"></a>Deep Reinforcement Learning</h2><p>Google’s DeepMind published its famous paper <a href="https://arxiv.org/abs/1312.5602" target="_blank" rel="external"><em>Playing Atari with Deep Reinforcement Learning</em></a>, in which they introduced a new algorithm called <strong>Deep Q Network</strong> (DQN for short) in 2013. It demonstrated how an AI agent can learn to play games by just observing the screen without any prior information about those games. The result turned out to be pretty impressive. This paper opened the era of what is called ‘deep reinforcement learning’, a mix of deep learning and reinforcement learning.</p>
+<p><a href="https://www.youtube.com/watch?v=V1eYniJ0Rnk" target="_blank" rel="external">Click to Watch: DeepMind’s Atari Player</a><br><img src="/images/deep-q-learning/atari.png" alt="atari"></p>
+<p>In <em>Q-Learning Algorithm</em>, there is a function called <strong>Q Function</strong>, which is used to approximate the reward based on a state. We call it <strong>Q(s,a)</strong>, where Q is a function which calculates the expected future value from state <em>s</em> and action <em>a</em>. Similarly in <em>Deep Q Network</em> algorithm, we use a neural network to approximate the reward based on the state. We will discuss how this works in detail.</p>
+<p><br></p>
+<h2 id="Cartpole-Game"><a href="#Cartpole-Game" class="headerlink" title="Cartpole Game"></a>Cartpole Game</h2><p>Usually, training an agent to play an Atari game takes a while (from few hours to a day). So we will make an agent to play a simpler game called CartPole, but using the same idea used in the paper.</p>
+<p>CartPole is one of the simplest environments in OpenAI gym (a game simulator). As you can see in the animation from the top, the goal of CartPole is to balance a pole connected with one joint on top of a moving cart. Instead of pixel information, there are 4 kinds of information given by the state, such as angle of the pole and position of the cart. An agent can move the cart by performing a series of actions of 0 or 1 to the cart, pushing it left or right.</p>
+<p>Gym makes interacting with the game environment really simple.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">next_state, reward, done, info = env.step(action)</div></pre></td></tr></table></figure>
+<p>As we discussed above, action can be either 0 or 1. If we pass those numbers, <code>env</code>, which represents the game environment, will emit the results. <code>done</code> is a boolean value telling whether the game ended or not. The old <code>state</code>information paired with <code>action</code> and <code>next_state</code> and <code>reward</code> is the information we need for training the agent.</p>
+<p><br></p>
+<h2 id="Implementing-Simple-Neural-Network-using-Keras"><a href="#Implementing-Simple-Neural-Network-using-Keras" class="headerlink" title="Implementing Simple Neural Network using Keras"></a>Implementing Simple Neural Network using Keras</h2><p>This post is not about deep learning or neural net. So we will consider neural net as just a black box algorithm that approximately maps inputs to outputs. It is basically an algorithm that learns on the pairs of examples input and output data, detects some kind of patterns, and predicts the output based on an unseen input data. Though neural network itself is not the focus of this article, we should understand how it is used in the DQN algorithm.</p>
+<p><img src="/images/deep-q-learning/neuralnet.png" alt="neuralnet"></p>
+<p>Note that the neural net we are going to use is similar to the diagram above. We will have one input layer that receives 4 information and 3 hidden layers. But we are going to have 2 nodes in the output layer since there are two buttons (0 and 1) for the game.</p>
+<p>Keras makes it really simple to implement a basic neural network. The code below creates an empty neural net model. <code>activation</code>, <code>loss</code> and <code>optimizer</code> are the parameters that define the characteristics of the neural network, but we are not going to discuss it here.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Neural Net for Deep Q Learning</span></div><div class="line"></div><div class="line"><span class="comment"># Sequential() creates the foundation of the layers.</span></div><div class="line">model = Sequential()</div><div class="line"></div><div class="line"><span class="comment"># 'Dense' is the basic form of a neural network layer</span></div><div class="line"><span class="comment"># Input Layer of state size(4) and Hidden Layer with 24 nodes</span></div><div class="line">model.add(Dense(<span class="number">24</span>, input_dim=self.state_size, activation=<span class="string">'relu'</span>))</div><div class="line"><span class="comment"># Hidden layer with 24 nodes</span></div><div class="line">model.add(Dense(<span class="number">24</span>, activation=<span class="string">'relu'</span>))</div><div class="line"><span class="comment"># Output Layer with # of actions: 2 nodes (left, right)</span></div><div class="line">model.add(Dense(self.action_size, activation=<span class="string">'linear'</span>))</div><div class="line"></div><div class="line"><span class="comment"># Create the model based on the information above</span></div><div class="line">model.compile(loss=<span class="string">'mse'</span>,</div><div class="line">              optimizer=Adam(lr=self.learning_rate))</div></pre></td></tr></table></figure>
+<p>In order for a neural net to understand and predict based on the environment data, we have to feed it the information. <code>fit()</code> method feeds input and output pairs to the model. Then the model will train on those data to approximate the output based on the input.</p>
+<p>This training process makes the neural net to predict the reward value from a certain <code>state</code>.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">model.fit(state, reward_value, epochs=<span class="number">1</span>, verbose=<span class="number">0</span>)</div></pre></td></tr></table></figure>
+<p>After training, the model now can predict the output from unseen input. When you call <code>predict()</code> function on the model, the model will predict the reward of current state based on the data you trained. Like so:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">prediction = model.predict(state)</div></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="Implementing-Mini-Deep-Q-Network-DQN"><a href="#Implementing-Mini-Deep-Q-Network-DQN" class="headerlink" title="Implementing Mini Deep Q Network (DQN)"></a>Implementing Mini Deep Q Network (DQN)</h2><p>Normally in games, the <em>reward</em> directly relates to the score of the game. Imagine a situation where the pole from CartPole game is tilted to the right. The expected future reward of pushing right button will then be higher than that of pushing the left button since it could yield higher score of the game as the pole survives longer.</p>
+<p>In order to logically represent this intuition and train it, we need to express this as a formula that we can optimize on. The loss is just a value that indicates how far our prediction is from the actual target. For example, the prediction of the model could indicate that it sees more value in pushing the right button when in fact it can gain more reward by pushing the left button. We want to decrease this gap between the prediction and the target (loss). We will define our loss function as follows:</p>
+<p><img src="/images/deep-q-learning/deep-q-learning.png" alt="deep-q-learning" style="width:100%; max-width: 500px;"></p>
+<p style="text-align:center; font-style:italic; font-size: 12px"><br>  Mathematical representation of Q-learning from Taehoon Kim’s<br>  <a href="https://www.slideshare.net/carpedm20/ai-67616630" target="_blank" rel="external">slides</a><br></p>
+
+<p>We first carry out an action <em>a</em>, and observe the reward <em>r</em> and resulting new state <em>s`</em>. Based on the result, we calculate the maximum target Q and then discount it so that the future reward is worth less than immediate reward (It is a same concept as interest rate for money. Immediate payment always worth more for same amount of money). Lastly, we add the current reward to the discounted future reward to get the target value. Subtracting our current prediction from the target gives the loss. Squaring this value allows us to punish the large loss value more and treat the negative values same as the positive values.</p>
+<p>Keras takes care of the most of the difficult tasks for us. We just need to define our target. We can express the target in a magical one-liner in python.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">target = reward + gamma * np.amax(model.predict(next_state))</div></pre></td></tr></table></figure>
+<p>Keras does all the work of subtracting the target from the neural network output and squaring it. It also applies the learning rate we defined while creating the neural network model. This all happens inside the <code>fit()</code> function. This function decreases the gap between our prediction to target by the learning rate. The approximation of the Q-value converges to the true Q-value as we repeat the updating process. The loss will decrease and score will grow higher.</p>
+<p>The most notable features of the DQN algorithm are <em>remember</em> and <em>replay</em> methods. Both are pretty simple concepts. The original DQN architecture contains a several more tweaks for better training, but we are going to stick to a simpler version for now.</p>
+<h2 id="Remember"><a href="#Remember" class="headerlink" title="Remember"></a>Remember</h2><p>One of the challenges for DQN is that neural network used in the algorithm tends to forget the previous experiences as it overwrites them with new experiences. So we need a list of previous experiences and observations to re-train the model with the previous experiences. We will call this array of experiences <code>memory</code> and use <code>remember()</code> function to append state, action, reward, and next state to the memory.</p>
+<p>In our example, the memory list will have a form of:<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">memory = [(state, action, reward, next_state, done)...]</div></pre></td></tr></table></figure></p>
+<p>And remember function will simply store states, actions and resulting rewards to the memory like below:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">remember</span><span class="params">(self, state, action, reward, next_state, done)</span>:</span></div><div class="line">    self.memory.append((state, action, reward, next_state, done))</div></pre></td></tr></table></figure>
+<p><code>done</code> is just a boolean that indicates if the state is the final state.</p>
+<p>Simple right?</p>
+<h2 id="Replay"><a href="#Replay" class="headerlink" title="Replay"></a>Replay</h2><p>A method that trains the neural net with experiences in the <code>memory</code> is called <code>replay()</code>. First, we sample some experiences from the <code>memory</code> and call them <code>minibath</code>.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">minibatch = random.sample(self.memory, batch_size)</div></pre></td></tr></table></figure>
+<p>The above code will make <code>minibatch</code>, which is just a randomly sampled elements of the memories of size <code>batch_size</code>. We set the batch size as 32 for this example.</p>
+<p>To make the agent perform well in long-term, we need to take into account not only the immediate rewards but also the future rewards we are going to get. In order to do this, we are going to have a ‘discount rate’ or ‘gamma’. This way the agent will learn to maximize the discounted future reward based on the given state.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Sample minibatch from the memory</span></div><div class="line">minibatch = random.sample(self.memory, batch_size)</div><div class="line"></div><div class="line"><span class="comment"># Extract informations from each memory</span></div><div class="line"><span class="keyword">for</span> state, action, reward, next_state, done <span class="keyword">in</span> minibatch:</div><div class="line"></div><div class="line">    <span class="comment"># if done, make our target reward</span></div><div class="line">    target = reward</div><div class="line"></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> done:</div><div class="line">      <span class="comment"># predict the future discounted reward</span></div><div class="line">      target = reward + self.gamma * \</div><div class="line">               np.amax(self.model.predict(next_state)[<span class="number">0</span>])</div><div class="line"></div><div class="line">    <span class="comment"># make the agent to approximately map</span></div><div class="line">    <span class="comment"># the current state to future discounted reward</span></div><div class="line">    <span class="comment"># We'll call that target_f</span></div><div class="line">    target_f = self.model.predict(state)</div><div class="line">    target_f[<span class="number">0</span>][action] = target</div><div class="line"></div><div class="line">    <span class="comment"># Train the Neural Net with the state and target_f</span></div><div class="line">    self.model.fit(state, target_f, epochs=<span class="number">1</span>, verbose=<span class="number">0</span>)</div></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="How-The-Agent-Decides-to-Act"><a href="#How-The-Agent-Decides-to-Act" class="headerlink" title="How The Agent Decides to Act"></a>How The Agent Decides to Act</h2><p>Our agent will randomly select its action at first by a certain percentage, called ‘exploration rate’ or ‘epsilon’. This is because at first, it is better for the agent to try all kinds of things before it starts to see the patterns.  When it is not deciding the action randomly, the agent will predict the reward value based on the current state and pick the action that will give the highest reward. <code>np.argmax()</code> is the function that picks the highest value between two elements in the <code>act_values[0]</code>.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">act</span><span class="params">(self, state)</span>:</span></div><div class="line">    <span class="keyword">if</span> np.random.rand() &lt;= self.epsilon:</div><div class="line">        <span class="comment"># The agent acts randomly</span></div><div class="line">        <span class="keyword">return</span> env.action_space.sample()</div><div class="line"></div><div class="line">    <span class="comment"># Predict the reward value based on the given state</span></div><div class="line">    act_values = self.model.predict(state)</div><div class="line"></div><div class="line">    <span class="comment"># Pick the action based on the predicted reward</span></div><div class="line">    <span class="keyword">return</span> np.argmax(act_values[<span class="number">0</span>])</div></pre></td></tr></table></figure>
+<p><code>act_values[0]</code> looks like this: [0.67, 0.2], each numbers representing the reward of picking action 0 and 1. And argmax function picks the index with the highest value. In the example of [0.67, 0.2], argmax returns <strong>0</strong> because the value in the 0th index is the highest.</p>
+<p><br></p>
+<h2 id="Hyper-Parameters"><a href="#Hyper-Parameters" class="headerlink" title="Hyper Parameters"></a>Hyper Parameters</h2><p>There are some parameters that have to be passed to a reinforcement learning agent. You will see these over and over again.</p>
+<ul>
+<li><code>episodes</code> - a number of games we want the agent to play.</li>
+<li><code>gamma</code> - aka decay or discount rate, to calculate the future discounted reward.</li>
+<li><code>epsilon</code> - aka exploration rate, this is the rate in which an agent randomly decides its action rather than prediction.</li>
+<li><code>epsilon_decay</code> - we want to decrease the number of explorations as it gets good at playing games.</li>
+<li><code>epsilon_min</code> - we want the agent to explore at least this amount.</li>
+<li><code>learning_rate</code> - Determines how much neural net learns in each iteration.</li>
+</ul>
+<p><br></p>
+<h2 id="Putting-It-All-Together-Coding-The-Deep-Q-Learning-Agent"><a href="#Putting-It-All-Together-Coding-The-Deep-Q-Learning-Agent" class="headerlink" title="Putting It All Together: Coding The Deep Q-Learning Agent"></a>Putting It All Together: Coding The Deep Q-Learning Agent</h2><p>I explained each part of the agent in the above. The code below implements everything we’ve talked about as a nice and clean class called <code>DQNAgent</code>.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Deep Q-learning Agent</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">DQNAgent</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, state_size, action_size)</span>:</span></div><div class="line">        self.state_size = state_size</div><div class="line">        self.action_size = action_size</div><div class="line">        self.memory = deque(maxlen=<span class="number">2000</span>)</div><div class="line">        self.gamma = <span class="number">0.95</span>    <span class="comment"># discount rate</span></div><div class="line">        self.epsilon = <span class="number">1.0</span>  <span class="comment"># exploration rate</span></div><div class="line">        self.epsilon_min = <span class="number">0.01</span></div><div class="line">        self.epsilon_decay = <span class="number">0.995</span></div><div class="line">        self.learning_rate = <span class="number">0.001</span></div><div class="line">        self.model = self._build_model()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_build_model</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="comment"># Neural Net for Deep-Q learning Model</span></div><div class="line">        model = Sequential()</div><div class="line">        model.add(Dense(<span class="number">24</span>, input_dim=self.state_size, activation=<span class="string">'relu'</span>))</div><div class="line">        model.add(Dense(<span class="number">24</span>, activation=<span class="string">'relu'</span>))</div><div class="line">        model.add(Dense(self.action_size, activation=<span class="string">'linear'</span>))</div><div class="line">        model.compile(loss=<span class="string">'mse'</span>,</div><div class="line">                      optimizer=Adam(lr=self.learning_rate))</div><div class="line">        <span class="keyword">return</span> model</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">remember</span><span class="params">(self, state, action, reward, next_state, done)</span>:</span></div><div class="line">        self.memory.append((state, action, reward, next_state, done))</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">act</span><span class="params">(self, state)</span>:</span></div><div class="line">        <span class="keyword">if</span> np.random.rand() &lt;= self.epsilon:</div><div class="line">            <span class="keyword">return</span> random.randrange(self.action_size)</div><div class="line">        act_values = self.model.predict(state)</div><div class="line">        <span class="keyword">return</span> np.argmax(act_values[<span class="number">0</span>])  <span class="comment"># returns action</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">replay</span><span class="params">(self, batch_size)</span>:</span></div><div class="line">        minibatch = random.sample(self.memory, batch_size)</div><div class="line">        <span class="keyword">for</span> state, action, reward, next_state, done <span class="keyword">in</span> minibatch:</div><div class="line">            target = reward</div><div class="line">            <span class="keyword">if</span> <span class="keyword">not</span> done:</div><div class="line">              target = reward + self.gamma * \</div><div class="line">                       np.amax(self.model.predict(next_state)[<span class="number">0</span>])</div><div class="line">            target_f = self.model.predict(state)</div><div class="line">            target_f[<span class="number">0</span>][action] = target</div><div class="line">            self.model.fit(state, target_f, epochs=<span class="number">1</span>, verbose=<span class="number">0</span>)</div><div class="line">        <span class="keyword">if</span> self.epsilon &gt; self.epsilon_min:</div><div class="line">            self.epsilon *= self.epsilon_decay</div></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="Let’s-Train-the-Agent"><a href="#Let’s-Train-the-Agent" class="headerlink" title="Let’s Train the Agent"></a>Let’s Train the Agent</h2><p>The training part is even shorter. I’ll explain in the comments.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line"></div><div class="line">    <span class="comment"># initialize gym environment and the agent</span></div><div class="line">    env = gym.make(<span class="string">'CartPole-v0'</span>)</div><div class="line">    agent = DQNAgent(env)</div><div class="line"></div><div class="line">    <span class="comment"># Iterate the game</span></div><div class="line">    <span class="keyword">for</span> e <span class="keyword">in</span> range(episodes):</div><div class="line"></div><div class="line">        <span class="comment"># reset state in the beginning of each game</span></div><div class="line">        state = env.reset()</div><div class="line">        state = np.reshape(state, [<span class="number">1</span>, <span class="number">4</span>])</div><div class="line"></div><div class="line">        <span class="comment"># time_t represents each frame of the game</span></div><div class="line">        <span class="comment"># Our goal is to keep the pole upright as long as possible until score of 500</span></div><div class="line">        <span class="comment"># the more time_t the more score</span></div><div class="line">        <span class="keyword">for</span> time_t <span class="keyword">in</span> range(<span class="number">500</span>):</div><div class="line">            <span class="comment"># turn this on if you want to render</span></div><div class="line">            <span class="comment"># env.render()</span></div><div class="line"></div><div class="line">            <span class="comment"># Decide action</span></div><div class="line">            action = agent.act(state)</div><div class="line"></div><div class="line">            <span class="comment"># Advance the game to the next frame based on the action.</span></div><div class="line">            <span class="comment"># Reward is 1 for every frame the pole survived</span></div><div class="line">            next_state, reward, done, _ = env.step(action)</div><div class="line">            next_state = np.reshape(next_state, [<span class="number">1</span>, <span class="number">4</span>])</div><div class="line"></div><div class="line">            <span class="comment"># Remember the previous state, action, reward, and done</span></div><div class="line">            agent.remember(state, action, reward, next_state, done)</div><div class="line"></div><div class="line">            <span class="comment"># make next_state the new current state for the next frame.</span></div><div class="line">            state = next_state</div><div class="line"></div><div class="line">            <span class="comment"># done becomes True when the game ends</span></div><div class="line">            <span class="comment"># ex) The agent drops the pole</span></div><div class="line">            <span class="keyword">if</span> done:</div><div class="line">                <span class="comment"># print the score and break out of the loop</span></div><div class="line">                print(<span class="string">"episode: &#123;&#125;/&#123;&#125;, score: &#123;&#125;"</span></div><div class="line">                      .format(e, episodes, time_t))</div><div class="line"></div><div class="line">                <span class="keyword">break</span></div><div class="line"></div><div class="line">        <span class="comment"># train the agent with the experience of the episode</span></div><div class="line">        agent.replay(<span class="number">32</span>)</div></pre></td></tr></table></figure>
+<h2 id="Result"><a href="#Result" class="headerlink" title="Result"></a>Result</h2><p>In the beginning, the agent explores by acting randomly.</p>
+<p><img src="/images/deep-q-learning/100.png" alt="beginning"></p>
+<p>It goes through multiple phases of learning.</p>
+<ol>
+<li>The cart masters balancing the pole.</li>
+<li>But goes out of bounds, ending the game.</li>
+<li>It tries to move away from the bounds when it is too close to them, but drops the pole.</li>
+<li>The cart masters balancing and controlling the pole.</li>
+</ol>
+<p>After several hundreds of episodes (took 10 min), it starts to learn how to maximize the score.<br><img src="/images/deep-q-learning/300.png" alt="beginning"></p>
+<p>The final result is the birth of a skillful CartPole game player!</p>
+<p><img src="/images/deep-q-learning/animation.gif" alt="animation"></p>
+<p>The code used for this article is on <a href="https://github.com/keon/deep-q-learning" target="_blank" rel="external">GitHub.</a>. I added the saved weights for those who want to skip the training part.</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a href="https://arxiv.org/abs/1312.5602" target="_blank" rel="external">Playing Atari with Deep Reinforcement Learning</a></li>
+<li><a href="http://home.uchicago.edu/~arij/journalclub/papers/2015_Mnih_et_al.pdf" target="_blank" rel="external">Human-level Control Through Deep Reinforcement Learning</a></li>
+<li><a href="https://www.slideshare.net/carpedm20/ai-67616630" target="_blank" rel="external">딥러닝과 강화 학습으로 나보다 잘하는 쿠키런 AI 구현하기 DEVIEW 2016</a></li>
+<li><a href="https://github.com/rlcode/reinforcement-learning" target="_blank" rel="external">Reinforcement Learning Examples by RLCode</a></li>
+<li><a href="https://www.nervanasys.com/demystifying-deep-reinforcement-learning/" target="_blank" rel="external">Demystifying Deep Reinforcement Learning</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;/images/deep-q-learning/animation.gif&quot; alt=&quot;animation&quot;&gt;&lt;/p&gt;
+&lt;p&gt;This blog post will demonstrate how deep reinforcement learning (deep Q-learning) can be implemented and applied to play a CartPole game using Keras and Gym, &lt;strong&gt;in less than 100 lines of code&lt;/strong&gt;!&lt;/p&gt;
+&lt;p&gt;I’ll explain everything without requiring any prerequisite knowledge about reinforcement learning.&lt;br&gt;
+    
+    </summary>
+    
+      <category term="rl" scheme="http://keon.io/categories/rl/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Rules of Thumb for MongoDB Schema Design</title>
+    <link href="http://keon.io/mongodb-schema-design/"/>
+    <id>http://keon.io/mongodb-schema-design/</id>
+    <published>2017-01-11T17:00:00.000Z</published>
+    <updated>2017-09-03T04:05:15.228Z</updated>
+    
+    <content type="html"><![CDATA[<p>This is a summary of <a href="https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design-part-1" target="_blank" rel="external">6 Rules of Thumb for MongoDB Schema Design</a>, which details how should MongoDB schemas should be organized in three separate blogs posts. So please take a look if this summarization is not sufficient.<br><a id="more"></a><br>If you are new to MongoDB it is natural to ask how should one structure the schema for One-to-Many relationship.</p>
+<h2 id="Basics"><a href="#Basics" class="headerlink" title="Basics"></a>Basics</h2><p>Relationships can be in three different forms.</p>
+<ul>
+<li>One-to-Few</li>
+<li>One-to-Many</li>
+<li>One-to-Squillions</li>
+</ul>
+<p>Each methods for structuring has its pros and cons. So the user should know how to decide which one is better than the other in the given situation.</p>
+<h2 id="One-to-Few"><a href="#One-to-Few" class="headerlink" title="One-to-Few"></a>One-to-Few</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// person</span></div><div class="line">&#123;</div><div class="line">  name: <span class="string">"Keon Kim"</span>,</div><div class="line">  hometown: <span class="string">"Seoul"</span>,</div><div class="line">  addresses: [</div><div class="line">    &#123; <span class="attr">city</span>: <span class="string">'Manhattan'</span>, <span class="attr">state</span>: <span class="string">'NY'</span>, <span class="attr">cc</span>: <span class="string">'USA'</span> &#125;,</div><div class="line">    &#123; <span class="attr">city</span>: <span class="string">'Jersey City'</span>, <span class="attr">state</span>: <span class="string">'NJ'</span>, <span class="attr">cc</span>: <span class="string">'USA'</span> &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Pros</strong></p>
+<ul>
+<li>You can call all the information in one query</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>It is impossible to search the contained entity independently.</li>
+</ul>
+<h2 id="One-to-Many"><a href="#One-to-Many" class="headerlink" title="One-to-Many"></a>One-to-Many</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// parts</span></div><div class="line">&#123;</div><div class="line">  _id: ObjectID(<span class="string">'AAAA'</span>),</div><div class="line">  partno: <span class="string">'123-aff-456'</span>,</div><div class="line">  name: <span class="string">'Awesometel 100Ghz CPU'</span>,</div><div class="line">  qty: <span class="number">102</span>,</div><div class="line">  cost: <span class="number">1.21</span>,</div><div class="line">  price: <span class="number">3.99</span></div><div class="line">&#125;</div><div class="line"><span class="comment">// products</span></div><div class="line">&#123;</div><div class="line">  name: <span class="string">'Weird Computer WC-3020'</span>,</div><div class="line">  manufacturer: <span class="string">'Haruair Eng.'</span>,</div><div class="line">  catalog_number: <span class="number">1234</span>,</div><div class="line">  parts: [</div><div class="line">    ObjectID(<span class="string">'AAAA'</span>),</div><div class="line">    ObjectID(<span class="string">'DEFO'</span>),</div><div class="line">    ObjectID(<span class="string">'EJFW'</span>)</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Parent holds the list of ObjectID of the child documents. This requires an application level join, not the database level join.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// find product based on category_number.</span></div><div class="line">&gt; product = db.products.findOne(&#123;<span class="attr">catalog_number</span>: <span class="number">1234</span>&#125;);</div><div class="line"><span class="comment">// find all parts in the product's parts list.</span></div><div class="line">&gt; product_parts = db.parts.find(&#123;</div><div class="line">                      _id: &#123; <span class="attr">$in</span> : product.parts &#125; </div><div class="line">                  &#125;).toArray() ;</div></pre></td></tr></table></figure>
+<p><strong>Pros</strong></p>
+<ul>
+<li>It is easy to handle insert, delete on each documents independently.</li>
+<li>It has flexibility for implementing N-to-N relationship because it is an application level join.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Performance drops as you call documents multiple times.</li>
+</ul>
+<h2 id="One-to-Squillions"><a href="#One-to-Squillions" class="headerlink" title="One-to-Squillions"></a>One-to-Squillions</h2><p>If you need to store tons of data (ie. event logs), you need to use a different approach since a document cannot be larger than 16MB in size. You need to use ‘parent-referencing’.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// host</span></div><div class="line">&#123;</div><div class="line">  _id : ObjectID(<span class="string">'AAAB'</span>),</div><div class="line">  name : <span class="string">'goofy.example.com'</span>,</div><div class="line">  ipaddr : <span class="string">'127.66.66.66'</span></div><div class="line">&#125;</div><div class="line"><span class="comment">// logmsg</span></div><div class="line">&#123;</div><div class="line">  time : ISODate(<span class="string">"2015-09-02T09:10:09.032Z"</span>),</div><div class="line">  message : <span class="string">'cpu is on fire!'</span>,</div><div class="line">  host: ObjectID(<span class="string">'AAAB'</span>)       <span class="comment">// references Host document</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Later you can join like below.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Search parent host document</span></div><div class="line">&gt; host = db.hosts.findOne(&#123;<span class="attr">ipaddr</span> : <span class="string">'127.66.66.66'</span>&#125;);</div><div class="line"><span class="comment">// Search the most recent 5000 logs</span></div><div class="line"><span class="comment">// for a host based on host's ObjectID</span></div><div class="line">&gt; last_5k_msg = db.logmsg.find(&#123;<span class="attr">host</span>: host._id&#125;)</div><div class="line">                         .sort(&#123;<span class="attr">time</span> : <span class="number">-1</span>&#125;)</div><div class="line">                         .limit(<span class="number">5000</span>)</div><div class="line">                         .toArray()</div></pre></td></tr></table></figure>
+<h2 id="Two-Way-Referencing"><a href="#Two-Way-Referencing" class="headerlink" title="Two-Way Referencing"></a>Two-Way Referencing</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// person</span></div><div class="line">&#123;</div><div class="line">  _id: ObjectID(<span class="string">"AAF1"</span>),</div><div class="line">  name: <span class="string">"Koala"</span>,</div><div class="line">  tasks [ <span class="comment">// reference task document</span></div><div class="line">    ObjectID(<span class="string">"ADF9"</span>),</div><div class="line">    ObjectID(<span class="string">"AE02"</span>),</div><div class="line">    ObjectID(<span class="string">"AE73"</span>)</div><div class="line">  ]</div><div class="line">&#125;</div><div class="line"><span class="comment">// tasks</span></div><div class="line">&#123;</div><div class="line">  _id: ObjectID(<span class="string">"ADF9"</span>),</div><div class="line">  description: <span class="string">"Practice Jiu-jitsu"</span>,</div><div class="line">  due_date:  ISODate(<span class="string">"2015-10-01"</span>),</div><div class="line">  owner: ObjectID(<span class="string">"AAF1"</span>) <span class="comment">// reference person document</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>We put references on bot sides in order to find the opposite document in one-to-many relationship.</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>It is easy to search on both Person and Task documents</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>It requires two separate queries to update an item. The update is not atomic.</li>
+</ul>
+<h2 id="Many-to-One-Denormalization"><a href="#Many-to-One-Denormalization" class="headerlink" title="Many-to-One Denormalization"></a>Many-to-One Denormalization</h2><p>We can structure the schema like below to avoid making multiple queries.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// products - before</span></div><div class="line">&#123;</div><div class="line">  name: <span class="string">'Weird Computer WC-3020'</span>,</div><div class="line">  manufacturer: <span class="string">'Haruair Eng.'</span>,</div><div class="line">  catalog_number: <span class="number">1234</span>,</div><div class="line">  parts: [</div><div class="line">    ObjectID(<span class="string">'AAAA'</span>),</div><div class="line">    ObjectID(<span class="string">'DEFO'</span>),</div><div class="line">    ObjectID(<span class="string">'EJFW'</span>)</div><div class="line">  ]</div><div class="line">&#125;</div><div class="line"><span class="comment">// products - after</span></div><div class="line">&#123;</div><div class="line">  name: <span class="string">'Weird Computer WC-3020'</span>,</div><div class="line">  manufacturer: <span class="string">'Haruair Eng.'</span>,</div><div class="line">  catalog_number: <span class="number">1234</span>,</div><div class="line">  parts: [ <span class="comment">// denormalization</span></div><div class="line">    &#123; <span class="attr">id</span>: ObjectID(<span class="string">'AAAA'</span>), <span class="attr">name</span>: <span class="string">'Awesometel 100Ghz CPU'</span> &#125;,</div><div class="line">    &#123; <span class="attr">id</span>: ObjectID(<span class="string">'DEFO'</span>), <span class="attr">name</span>: <span class="string">'AwesomeSize 100TB SSD'</span> &#125;,</div><div class="line">    &#123; <span class="attr">id</span>: ObjectID(<span class="string">'EJFW'</span>), <span class="attr">name</span>: <span class="string">'Magical Mouse'</span> &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>You can use it like below in the application level:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// search product document</span></div><div class="line">&gt; product = db.products.findOne(&#123;<span class="attr">catalog_number</span>: <span class="number">1234</span>&#125;);</div><div class="line"><span class="comment">// make a list of part id using map() function</span></div><div class="line"><span class="comment">// from the list of ObjectIDs</span></div><div class="line">&gt; part_ids = product.parts.map( <span class="function"><span class="keyword">function</span>(<span class="params">doc</span>) </span>&#123; <span class="keyword">return</span> doc.id &#125; );</div><div class="line"><span class="comment">// search all parts related to the product</span></div><div class="line">&gt; product_parts = db.parts.find(&#123;<span class="attr">_id</span>: &#123; <span class="attr">$in</span> : part_ids &#125; &#125; )</div><div class="line">                          .toArray();</div></pre></td></tr></table></figure>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Denormalization reduces the cost of calling the data. </li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>When you want to update the part name, you have to update all names contained inside product document</li>
+<li>It is not a good choice when updates are frequent</li>
+</ul>
+<p>This form of denormalization is favorable when there is no frequent updates and squillion reads.</p>
+<h2 id="One-to-Many-Denormalization"><a href="#One-to-Many-Denormalization" class="headerlink" title="One-to-Many Denormalization"></a>One-to-Many Denormalization</h2><p>Unlike the previous example, we can denormalize in the opposite way. The same pros and cons apply.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// parts - before</span></div><div class="line">&#123;</div><div class="line">  _id: ObjectID(<span class="string">'AAAA'</span>),</div><div class="line">  partno: <span class="string">'123-aff-456'</span>,</div><div class="line">  name: <span class="string">'Awesometel 100Ghz CPU'</span>,</div><div class="line">  qty: <span class="number">102</span>,</div><div class="line">  cost: <span class="number">1.21</span>,</div><div class="line">  price: <span class="number">3.99</span></div><div class="line">&#125;</div><div class="line"><span class="comment">// parts - after</span></div><div class="line">&#123;</div><div class="line">  _id: ObjectID(<span class="string">'AAAA'</span>),</div><div class="line">  partno: <span class="string">'123-aff-456'</span>,</div><div class="line">  name: <span class="string">'Awesometel 100Ghz CPU'</span>,</div><div class="line">  product_name: <span class="string">'Weird Computer WC-3020'</span>, <span class="comment">// denormalization</span></div><div class="line">  product_catalog_number: <span class="number">1234</span>,           <span class="comment">// denormalization</span></div><div class="line">  qty: <span class="number">102</span>,</div><div class="line">  cost: <span class="number">1.21</span>,</div><div class="line">  price: <span class="number">3.99</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="One-to-Squillions-Denormalization"><a href="#One-to-Squillions-Denormalization" class="headerlink" title="One-to-Squillions Denormalization"></a>One-to-Squillions Denormalization</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// logmsg - before</span></div><div class="line">&#123;</div><div class="line">  time : ISODate(<span class="string">"2015-09-02T09:10:09.032Z"</span>),</div><div class="line">  message : <span class="string">'cpu is on fire!'</span>,</div><div class="line">  host: ObjectID(<span class="string">'AAAB'</span>)</div><div class="line">&#125;</div><div class="line"><span class="comment">// logmsg - after</span></div><div class="line">&#123;</div><div class="line">  time : ISODate(<span class="string">"2015-09-02T09:10:09.032Z"</span>),</div><div class="line">  message : <span class="string">'cpu is on fire!'</span>,</div><div class="line">  host: ObjectID(<span class="string">'AAAB'</span>),</div><div class="line">  ipaddr : <span class="string">'127.66.66.66'</span></div><div class="line">&#125;</div><div class="line">&gt; last_5k_msg = db.logmsg.find(&#123;<span class="attr">ipaddr</span> : <span class="string">'127.66.66.66'</span>&#125;)</div><div class="line">                         .sort(&#123;<span class="attr">time</span> : <span class="number">-1</span>&#125;)</div><div class="line">                         .limit(<span class="number">5000</span>)</div><div class="line">                         .toArray()</div></pre></td></tr></table></figure>
+<p>In fact, you can merge the two documents.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    time : ISODate(<span class="string">"2015-09-02T09:10:09.032Z"</span>),</div><div class="line">    message : <span class="string">'cpu is on fire!'</span>,</div><div class="line">    ipaddr : <span class="string">'127.66.66.66'</span>,</div><div class="line">    hostname : <span class="string">'goofy.example.com'</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>It would be used like this in the code.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// receive log from monitoring program.</span></div><div class="line">logmsg = get_log_msg();</div><div class="line">log_message_here = logmsg.msg;</div><div class="line">log_ip = logmsg.ipaddr;</div><div class="line"><span class="comment">// get timestamp</span></div><div class="line">now = <span class="keyword">new</span> <span class="built_in">Date</span>();</div><div class="line"><span class="comment">// find host's id for update</span></div><div class="line">host_doc = db.hosts.findOne(&#123; <span class="attr">ipaddr</span>: log_ip &#125;,&#123; <span class="attr">_id</span>: <span class="number">1</span> &#125;);</div><div class="line">host_id = host_doc._id;</div><div class="line"><span class="comment">// save denoramlized data</span></div><div class="line">db.logmsg.save(&#123;</div><div class="line">    time : now,</div><div class="line">    message : log_message_here,</div><div class="line">    ipaddr : log_ip,</div><div class="line">    host : host_id ) &#125;);</div><div class="line"><span class="comment">// Push the denoramlized data in 'one'</span></div><div class="line">db.hosts.update( &#123;<span class="attr">_id</span>: host_id &#125;, &#123;</div><div class="line">    $push : &#123;</div><div class="line">      logmsgs : &#123;</div><div class="line">        $each:  [ &#123; <span class="attr">time</span> : now, <span class="attr">message</span> : log_message_here &#125; ],</div><div class="line">        $sort:  &#123; <span class="attr">time</span> : <span class="number">1</span> &#125;,  <span class="comment">// sort by time</span></div><div class="line">        $slice: <span class="number">-1000</span>          <span class="comment">// get top 1000</span></div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;);</div></pre></td></tr></table></figure>
+<h2 id="6-Rules-of-Thumb"><a href="#6-Rules-of-Thumb" class="headerlink" title="6 Rules of Thumb"></a>6 Rules of Thumb</h2><p>Here are some “rules of thumb” to guide you through these indenumberable (but not infinite) choices</p>
+<ol>
+<li><p>favor embedding unless there is a compelling reason not to</p>
+</li>
+<li><p>needing to access an object on its own is a compelling reason not to embed it</p>
+</li>
+<li><p>Arrays should not grow without bound. If there are more than a couple of hundred documents on the “many” side, don’t embed them; if there are more than a few thousand documents on the “many” side, don’t use an array of ObjectID references. High-cardinality arrays are a compelling reason not to embed.</p>
+</li>
+<li><p>Don’t be afraid of application-level joins: if you index correctly and use the projection specifier then application-level joins are barely more expensive than server-side joins in a relational database.</p>
+</li>
+<li><p>Consider the write/read ratio when denormalizing. A field that will mostly be read and only seldom updated is a good candidate for denormalization: if you denormalize a field that is updated frequently then the extra work of finding and updating all the instances is likely to overwhelm the savings that you get from denormalizing.</p>
+</li>
+<li><p>As always with MongoDB, how you model your data depends – entirely – on your particular application’s data access patterns. You want to structure your data to match the ways that your application queries and updates it.</p>
+</li>
+</ol>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a href="https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design-part-1" target="_blank" rel="external">6 Rules of Thumb for MongoDB Schema Design Part 1</a>, <a href="https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design-part-2" target="_blank" rel="external">Part 2</a>, <a href="https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design-part-3" target="_blank" rel="external">Part 3</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;This is a summary of &lt;a href=&quot;https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design-part-1&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;6 Rules of Thumb for MongoDB Schema Design&lt;/a&gt;, which details how should MongoDB schemas should be organized in three separate blogs posts. So please take a look if this summarization is not sufficient.&lt;br&gt;
+    
+    </summary>
+    
+      <category term="db" scheme="http://keon.io/categories/db/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Computer Scientist&#39;s Trivia</title>
+    <link href="http://keon.io/computer-scientists-trivia/"/>
+    <id>http://keon.io/computer-scientists-trivia/</id>
+    <published>2016-12-20T17:00:00.000Z</published>
+    <updated>2017-09-03T04:05:15.228Z</updated>
+    
+    <content type="html"><![CDATA[<p>It is crucial for programmers to understand how long a certain operation takes in and out of a computer. For example, fetching a word from cache, memory, disk, and from other computers.<br>Inspired by <a href="http://norvig.com/21-days.html#answers" target="_blank" rel="external">Teach Yourself Programming in Ten Years</a>, I would like to discuss this in a little more detail. (Most information is taken from <a href="https://gist.github.com/jboner/2841832" target="_blank" rel="external">here</a>)</p>
+<p>The analogy is:</p>
+<ul>
+<li>L1 Cache - There is a sandwich in front of you.</li>
+<li>L2 Cache - Walk to the kitchen and make a sandwich</li>
+<li>RAM - Drive to the store, purchase sandwich fixings, drive home and make sandwich</li>
+<li>Hard Drive - Drive to the store. purchase seeds. grow seeds, harvest lettuce, wheat, etc. Make sandwich.</li>
+</ul>
+<a id="more"></a>
+<p>To be more specific:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Latency Comparisons</th>
+<th style="text-align:right">Nanosec</th>
+<th style="text-align:right">Microsec</th>
+<th style="text-align:right">Millisec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">L1 cache reference</td>
+<td style="text-align:right">0.5</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Branch mispredict</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">L2 cache reference</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Mutex lock/unlock</td>
+<td style="text-align:right">25</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Main memory reference</td>
+<td style="text-align:right">100</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Compress 1K bytes with Zippy</td>
+<td style="text-align:right">3,000</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Send 1K bytes over 1 Gbps network</td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 4K randomly from SSD</td>
+<td style="text-align:right">150,000</td>
+<td style="text-align:right">150</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from memory</td>
+<td style="text-align:right">250,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Round trip within same datacenter</td>
+<td style="text-align:right">500,000</td>
+<td style="text-align:right">500</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from SSD</td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td style="text-align:left">Disk seek</td>
+<td style="text-align:right">10,000,000</td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">10</td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from disk</td>
+<td style="text-align:right">20,000,000</td>
+<td style="text-align:right">20,000</td>
+<td style="text-align:right">20</td>
+</tr>
+<tr>
+<td style="text-align:left">Send packet CA-&gt;Netherlands-&gt;CA</td>
+<td style="text-align:right">150,000,000</td>
+<td style="text-align:right">150,000</td>
+<td style="text-align:right">150</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a>Notes</h4><ul>
+<li>1 ns = 10^-9 seconds</li>
+<li>1 us = 10^-6 seconds = 1,000 ns</li>
+<li>1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns</li>
+</ul>
+<p>It is important to have this information in mind because you have to understand what you should be optimizing for. Optimizing the CPU caching like hell will improve the web-api’s latency only a little, because most of the latency comes from the traveling time of the data.</p>
+<p>If L1 access takes a second, then reading 1 MB sequentially from disk takes about 462 days. Sending packet form California to Netherlands and back to California would take 3472 days.</p>
+<p>If visualized :</p>
+<p><img src="/images/machine-prog/latency.png" alt="latency"></p>
+<h2 id="Numbers-and-Bits"><a href="#Numbers-and-Bits" class="headerlink" title="Numbers and Bits"></a>Numbers and Bits</h2><p>These numbers come naturally to programmers. First ten powers of 2 numbers:</p>
+<p>1 2 4 8 16 32 64 128 256 512 1024</p>
+<ul>
+<li>2^10 = Kibi ~ Kilo = 10^3</li>
+<li>2^20 = Mebi ~ Mega = 10^6</li>
+<li>2^30 = Gibi ~ Giga = 10^9</li>
+<li>2^40 = Tebi ~ Tera = 10^12</li>
+</ul>
+<p>It is good to know the answers for the questions below.</p>
+<p><strong>What’s  the number  1111  1111?</strong>: 255<br><strong>What’s  1111  1111  in  Hex?</strong>: 0xff<br><strong>What’s  the number  1000  0000?</strong>: 2^7=128<br><strong>What’s  the largest 8-bit number?</strong>: 255<br><strong>How to represent negative numbers?</strong>: 2’s Complement</p>
+<h2 id="Notes-Two’s-Complement"><a href="#Notes-Two’s-Complement" class="headerlink" title="Notes - Two’s Complement"></a>Notes - Two’s Complement</h2><p>To obtain the two’s complement of X, you first obtain the one’s complement by inverting (flipping) all the bits of X, then add 1 to the one’s complement to yield the two’s complement. A negative number in two’s complement representation always has the most-significant bit set.<br>Therefore, the conversion is:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"> 128 64 32 16 8 4 2 1</div><div class="line">   0  0  0  0 0 0 1 1    =  3</div><div class="line"></div><div class="line">-128 64 32 16 8 4 2 1</div><div class="line">   1  1  1  1 1 1 0 1    = -3</div></pre></td></tr></table></figure>
+<h2 id="Byte-Ordering"><a href="#Byte-Ordering" class="headerlink" title="Byte Ordering"></a>Byte Ordering</h2><p>Conceptually, memory is a big array, addressable at each byte.</p>
+<p><em>Big Endian</em>: most significant byte in smallest address (0x01020304)<br><em>Little Endian</em>: least significant byte in smallest address (0x04030201)</p>
+<h2 id="Bit-Twiddling"><a href="#Bit-Twiddling" class="headerlink" title="Bit Twiddling"></a>Bit Twiddling</h2><p>Bitwise operations and tricks can be found in <a href="https://github.com/keonkim/awesome-bits" target="_blank" rel="external">here</a>.</p>
+<h2 id="Floating-Points"><a href="#Floating-Points" class="headerlink" title="Floating Points"></a>Floating Points</h2><p>(-1)^(sign) <em> Mantissa (aka significand) </em> 2^E</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Sign Bit</th>
+<th>Encoded E</th>
+<th>Encoded M</th>
+<th>Precision</th>
+<th>Magnitude</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single</td>
+<td>sign(1bit)</td>
+<td>exp (8-bits)</td>
+<td>frac(23-bits)</td>
+<td>2^-149</td>
+<td>2^128</td>
+</tr>
+<tr>
+<td>Double</td>
+<td>sign(1bit)</td>
+<td>exp (11-bits)</td>
+<td>frac(52-bits)</td>
+<td>2^(-1074)</td>
+<td>2^1025</td>
+</tr>
+</tbody>
+</table>
+<p>Floating points are tricky because the precision diminishes as magnitude grows and it is prone to overflow and rounding error.</p>
+<p>Many real world disasters due to floating point trickiness. Patriot Missile failed to intercept due to 0.1 rounding error (1991). Ariane 5 explosion due to overflow in converting from double to int (1996) </p>
+<h2 id="Extract-Sign-Mantissa-and-E-from-a-Float"><a href="#Extract-Sign-Mantissa-and-E-from-a-Float" class="headerlink" title="Extract Sign, Mantissa, and E from a Float"></a>Extract Sign, Mantissa, and E from a Float</h2><p>To display sign-bit, 8-bit exp field, and 23-bit frac field…</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> *f =  (<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(&amp;x);</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> sign = (* f) &gt;&gt; <span class="number">31</span>;</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="built_in">exp</span> = (* f) &lt;&lt; <span class="number">1</span> &gt;&gt; <span class="number">24</span>;</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> frac = ((* f) &lt;&lt; <span class="number">9</span>) &gt;&gt; <span class="number">9</span>;</div></pre></td></tr></table></figure>
+<p>GCC and Clang also support an extension that lets you use a union:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">union</span> &#123;</div><div class="line">     <span class="keyword">int32_t</span> bits;</div><div class="line">     <span class="keyword">float</span> val;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">f.val = <span class="number">123.0</span>;</div><div class="line">use(f.bits)</div></pre></td></tr></table></figure></p>
+<h2 id="Special-Values"><a href="#Special-Values" class="headerlink" title="Special Values"></a>Special Values</h2><p><strong>Infinite</strong> : exp = 111…1, frac = 000…0<br>(ex., 1.0/0.0 = −1.0/−0.0 = +∞,  1.0/−0.0 = −∞)<br><strong>Not-a-Number(NaN</strong>) : exp = 111…1, frac ≠ 000…0<br>(ex., sqrt(–1), ∞ − ∞, ∞ × 0)</p>
+<h2 id="C-data-types"><a href="#C-data-types" class="headerlink" title="C data types"></a>C data types</h2><p>I personally do not think that every programmers should know C in order to succeed in programming in other langauges. However, I think it is very important to know how data is stored in C (especially pointers). This knowledge broadens the perspective of how memory and cpu works. And you’ll appreciate more on how modern languages made everything so easy.</p>
+<h2 id="Primitive-Types-in-C"><a href="#Primitive-Types-in-C" class="headerlink" title="Primitive Types in C"></a>Primitive Types in C</h2><p>It depends on OS by OS but, most commonly…</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Size (32-bit)</th>
+<th>Size (64-bit)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>char</td>
+<td>1 (8 bit)</td>
+<td>1 (8  bit)</td>
+</tr>
+<tr>
+<td>short</td>
+<td>2 (16 bit)</td>
+<td>2 (16 bit)</td>
+</tr>
+<tr>
+<td>int</td>
+<td>4 (32 bit)</td>
+<td>4 (32 bit)</td>
+</tr>
+<tr>
+<td>long</td>
+<td>8 (32 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+<tr>
+<td>float</td>
+<td>4 (32 bit)</td>
+<td>4 (32 bit)</td>
+</tr>
+<tr>
+<td>double</td>
+<td>8 (64 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+<tr>
+<td>pointer</td>
+<td>4 (32 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2D-Array-vs-Array-of-Pointers"><a href="#2D-Array-vs-Array-of-Pointers" class="headerlink" title="2D Array vs. Array of  Pointers"></a>2D Array vs. Array of  Pointers</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> m[<span class="number">2</span>][<span class="number">3</span>] = &#123; &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;, &#123;<span class="number">4</span>, <span class="number">5</span>,<span class="number">6</span>&#125;&#125;;</div><div class="line"><span class="keyword">int</span> *n[<span class="number">2</span>];</div></pre></td></tr></table></figure>
+<p><em>Diagram to show the difference</em><br>m: |_|_|_|_|_|_|_|<br>n: |_|_|</p>
+<p>n[0] = &amp;m[0][0]; // equivalent to n[0] = m[0]<br>n[1] = &amp;m[1][0]; // equivalent to n[1] = m[1]</p>
+<p>what is n[0][1]? // 2<br>m[0][1]?         // same as n[0][1]</p>
+<p>What is n[1][1]? // 5<br>What is m[1][1]? // same as n[1][1]</p>
+<p>What about n[0][5]? // 6</p>
+<p>n[1] = m[0];<br>what is n[1][1] now? // 2</p>
+<p>n[1][1]++;<br>what are all elements of m? // 1 3 3 4 5 6</p>
+<p>n[1][3]++;<br>what are all elements of m? // 1 3 3 5 5 6</p>
+<h2 id="Performance-Realities"><a href="#Performance-Realities" class="headerlink" title="Performance Realities"></a>Performance Realities</h2><p>Programmers must optimize at multiple levels</p>
+<ul>
+<li>Big-O: algorithm, data representations</li>
+<li>Systems: optimize memory access, I/O, parallelize execution</li>
+</ul>
+<h2 id="Steps-of-manual-optimization"><a href="#Steps-of-manual-optimization" class="headerlink" title="Steps of manual optimization"></a>Steps of manual optimization</h2><ol>
+<li>Identify bottlenecks - Bottleneck is CPU? Disk/SSD? Network? others?</li>
+<li>Measure program performance - If CPU is the bottleneck, profile a program’s execution to figure out which code path takes the most time</li>
+</ol>
+<p>One sentence short, the biggest challenge for every programmers is: <em>how to improve performance without destroying code modularity and readability</em>. While contributing to <a href="https://github.com/mlpack/mlpack" target="_blank" rel="external">mlpack</a>, I saw maintainers giving up the use of GPU for performance improvements because it made the code too messy and unmaintainable.</p>
+<p>You cannot rely on compiler optimization because compiler must generate the safe machine code that behaves same in any circumstances, which limits the scope of optimization. When in doubt, the compiler must be conservative.</p>
+<h2 id="Getting-Higher-Performance"><a href="#Getting-Higher-Performance" class="headerlink" title="Getting Higher Performance"></a>Getting Higher Performance</h2><p>Use compiler optimization flags and watch out for:</p>
+<ul>
+<li>hidden algorithmic inefficiencies</li>
+<li>Watch out for optimization blockers</li>
+<li>procedure calls &amp; memory aliasing</li>
+</ul>
+<p>Always profile the program’s performance.</p>
+<h2 id="Code-Motion"><a href="#Code-Motion" class="headerlink" title="Code Motion"></a>Code Motion</h2><ul>
+<li>Reduce frequency with which computation performed</li>
+<li>If it will always produce same result</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_row</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> i, <span class="keyword">long</span> n)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">long</span> j;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[n*i+j] = b[j];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">set_row:</div><div class="line">  testq		%rcx,		%rcx	# Test n</div><div class="line">  jle		.L1			# If 0, goto done</div><div class="line">  imulq		%rcx,		%rdx	# ni = n*i  redundant!!</div><div class="line">  leaq		(%rdi,%rdx,8),	%rdx 	# rowp = A + ni*8</div><div class="line">  movl		$0, 		%eax	# j = 0</div><div class="line">.L3:					# loop:</div><div class="line">  movsd		(%rsi,%rax,8),	%xmm0	# t = b[j]</div><div class="line">  movsd		%xmm0, 	(%rdx,%rax,8)	# M[A+ni*8 + j*8] = t</div><div class="line">  addq		$1,		%rax	# j++</div><div class="line">  cmpq		%rcx,		%rax	# j:n</div><div class="line">  jne		.L3			# if !=, goto loop</div><div class="line">.L1:					# done:</div><div class="line">  rep ; 	ret</div></pre></td></tr></table></figure></p>
+<p>To improve the performance, take the redundant multiplication out of the loop like below:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">long</span> j;</div><div class="line"><span class="keyword">int</span> ni = n*i;</div><div class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">	a[ni+j] = b[j];</div></pre></td></tr></table></figure></p>
+<h2 id="Replace-Costly-Operation-with-Simpler-One"><a href="#Replace-Costly-Operation-with-Simpler-One" class="headerlink" title="Replace Costly Operation with Simpler One"></a>Replace Costly Operation with Simpler One</h2><ul>
+<li>Shift, add instead of multiply or divide (ex: <code>16*x--&gt;x &lt;&lt; 4</code>)</li>
+<li>Recognize sequence of products</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">  <span class="keyword">int</span> ni = n*i;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[ni + j] = b[j];</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In this case, replacing the multiplication with addition improves the performance.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> ni = <span class="number">0</span>;</div><div class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[ni + j] = b[j];</div><div class="line">    ni += n;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Share-Common-Subexpressions"><a href="#Share-Common-Subexpressions" class="headerlink" title="Share Common Subexpressions"></a>Share Common Subexpressions</h2><p>Reuse portions of expressions (GCC will do this with –O1).</p>
+<p>The below code has 3 multiplications: i*n, (i–1)*n, (i+1)*n.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum neighbors of i,j */</span></div><div class="line">up =    val[(i<span class="number">-1</span>)*n + j  ];</div><div class="line">down =  val[(i+<span class="number">1</span>)*n + j  ];</div><div class="line">left =  val[i*n     + j<span class="number">-1</span>];</div><div class="line">right = val[i*n     + j+<span class="number">1</span>];</div><div class="line">sum = up + down + left + right;</div></pre></td></tr></table></figure></p>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">leaq	1(%rsi),	%rax	# i+1</div><div class="line">leaq	-1(%rsi),	%r8	# i-1</div><div class="line">imulq	%rcx,		%rsi	# i*n</div><div class="line">imulq	%rcx,		%rax	# (i+1)*n</div><div class="line">imulq	%rcx,		%r8	# (i-1)*n</div><div class="line">addq	%rdx,		%rsi	# i*n+j</div><div class="line">addq	%rdx,		%rax	# (i+1)*n+j</div><div class="line">addq	%rdx,		%r8	# (i-1)*n+j</div></pre></td></tr></table></figure></p>
+<p>This code the the same work but there is only 1 multiplication in the code below: i*n.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">long</span> inj = i*n + j;</div><div class="line">up =    val[inj - n];</div><div class="line">down =  val[inj + n];</div><div class="line">left =  val[inj - <span class="number">1</span>];</div><div class="line">right = val[inj + <span class="number">1</span>];</div><div class="line">sum = up + down + left + right;</div></pre></td></tr></table></figure></p>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">imulq	%rcx,		%rsi	# i*n</div><div class="line">addq	%rdx,		%rsi	# i*n+j</div><div class="line">movq	%rsi,		%rax	# i*n+j</div><div class="line">subq	%rcx,		%rax	# i*n+j-n</div><div class="line">leaq	(%rsi,%rcx),	%rcx	# i*n+j+n</div></pre></td></tr></table></figure></p>
+<h2 id="Optimization-Blocker-1-Procedure-Calls"><a href="#Optimization-Blocker-1-Procedure-Calls" class="headerlink" title="Optimization Blocker 1. Procedure Calls"></a>Optimization Blocker 1. Procedure Calls</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">lower</span><span class="params">(<span class="keyword">char</span> *s)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">size_t</span> i;</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="built_in">strlen</span>(s); i++)</div><div class="line">    <span class="keyword">if</span> (s[i] &gt;= <span class="string">'A'</span> &amp;&amp; s[i] &lt;= <span class="string">'Z'</span>)</div><div class="line">      s[i] -= (<span class="string">'A'</span> - <span class="string">'a'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Question: What’s the big-O runtime of lower, O(n)?  </p>
+<p><img src="/images/machine-prog/lower-case-graph.png" alt="lower-case-graph"><br>Answer: Quadratic performance!</p>
+<p>Strlen takes O(n) to finish and strlen is called n times, which makes the whole function O(n^2).</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">lower2</span><span class="params">(<span class="keyword">char</span> *s)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">size_t</span> i;</div><div class="line">  <span class="keyword">size_t</span> len = <span class="built_in">strlen</span>(s);</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</div><div class="line">    <span class="keyword">if</span> (s[i] &gt;= <span class="string">'A'</span> &amp;&amp; s[i] &lt;= <span class="string">'Z'</span>)</div><div class="line">      s[i] -= (<span class="string">'A'</span> - <span class="string">'a'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In order to remedy this, we move call to strlen outside of loop. Since result does not change from one iteration to another. The improved performance is shown below.</p>
+<p><img src="/images/machine-prog/lower-case-optimized.png" alt="lower-case-optimized"></p>
+<h2 id="Optimization-Blocker-2-Memory-Aliasing"><a href="#Optimization-Blocker-2-Memory-Aliasing" class="headerlink" title="Optimization Blocker 2. Memory Aliasing"></a>Optimization Blocker 2. Memory Aliasing</h2><p>Aliasing means when two different memory references specify single location. It is easy to happen in C since it is allowed to do address arithmetic and direct access to storage structures is possible. In order to control this, get in habit of introducing local variables. See the variables accumulating within loops.</p>
+<p>The aggressive reuse of memory is one of the ways through which programmers make code fast, and it is important for the correctness and speed of your program that you understand how a program might alias buffers.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum rows is of n X n matrix a and store in vector b  */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">sum_rows1</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> n)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> i, j;</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">      b[i] = <span class="number">0</span>;</div><div class="line">      <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">        b[i] += a[i*n + j];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># sum_rows1 inner loop</div><div class="line">.L4:</div><div class="line">        movsd   (%rsi,%rax,8),	%xmm0	# FP load</div><div class="line">        addsd   (%rdi),		%xmm0	# FP add</div><div class="line">        movsd   %xmm0,	(%rsi,%rax,8)	# FP store</div><div class="line">        addq    $8,		%rdi</div><div class="line">        cmpq    %rcx,		%rdi</div><div class="line">        jne     .L4</div></pre></td></tr></table></figure></p>
+<p>Code updates b[i] on every iteration. Programmers must consider possibility that these updates will affect program behavior. Let’s remove the aliasing like below.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum rows is of n X n matrix a and store in vector b  */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">sum_rows2</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> n)</span> </span>&#123;</div><div class="line">  <span class="keyword">long</span> i, j;</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">    <span class="keyword">int</span> val = <span class="number">0</span>;</div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)&#123;</div><div class="line">        val += a[i*n + j];</div><div class="line">         b[i] = val;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># sum_rows2 inner loop</div><div class="line">.L10:</div><div class="line">        addsd   (%rdi),	%xmm0	# FP load + add</div><div class="line">        addq    $8,	%rdi</div><div class="line">        cmpq    %rax,	%rdi</div><div class="line">        jne     .L10</div></pre></td></tr></table></figure></p>
+<p>There is no need to store intermediate results anymore.</p>
+<h2 id="Memory-Layout"><a href="#Memory-Layout" class="headerlink" title="Memory Layout"></a>Memory Layout</h2><ul>
+<li>Stack<ul>
+<li>Runtime stack (8MB limit)</li>
+<li>E. g., local variables</li>
+</ul>
+</li>
+<li>Heap<ul>
+<li>Dynamically allocated as needed</li>
+<li>When call  malloc(), calloc(), new()</li>
+</ul>
+</li>
+<li>Data<ul>
+<li>Statically allocated data</li>
+<li>E.g., global vars, static vars, string constants</li>
+</ul>
+</li>
+<li>Text  / Shared Libraries<ul>
+<li>Executable machine instructions</li>
+<li>Read-only</li>
+</ul>
+</li>
+</ul>
+<p>Each memory segment can be readable, executable, writable (or none at all). Segmentation fault occurs when program tries to access illegal memory. For example, when reading from segment with no permission or writing to read-only segments of the memory.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;It is crucial for programmers to understand how long a certain operation takes in and out of a computer. For example, fetching a word from cache, memory, disk, and from other computers.&lt;br&gt;Inspired by &lt;a href=&quot;http://norvig.com/21-days.html#answers&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Teach Yourself Programming in Ten Years&lt;/a&gt;, I would like to discuss this in a little more detail. (Most information is taken from &lt;a href=&quot;https://gist.github.com/jboner/2841832&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;here&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;The analogy is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;L1 Cache - There is a sandwich in front of you.&lt;/li&gt;
+&lt;li&gt;L2 Cache - Walk to the kitchen and make a sandwich&lt;/li&gt;
+&lt;li&gt;RAM - Drive to the store, purchase sandwich fixings, drive home and make sandwich&lt;/li&gt;
+&lt;li&gt;Hard Drive - Drive to the store. purchase seeds. grow seeds, harvest lettuce, wheat, etc. Make sandwich.&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="cs" scheme="http://keon.io/categories/cs/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>How to install mlpack on windows</title>
+    <link href="http://keon.io/mlpack-on-windows/"/>
+    <id>http://keon.io/mlpack-on-windows/</id>
+    <published>2016-11-27T21:57:04.000Z</published>
+    <updated>2017-09-03T04:05:15.228Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/mlpack-on-windows/mlpack.svg" style="background-color:rgba(0,0,0,0);" height="150" alt="mlpack: a scalable C++ machine learning library"><br>I usually use Vim on Ubuntu for any type of development.<br>Lately I tried installing mlpack on Windows 10 to try programming on Visual Studio 2015, which I heard is very good for debugging.</p>
+<a id="more"></a>
+<p>I used <a href="https://github.com/mlpack/mlpack/blob/master/.appveyor.yml" target="_blank" rel="external">appveyor</a> instructions to build mlpack. I think this is the simplest way of building mlpack since most of the dependencies (except for armadillo) used is pre-compiled.</p>
+<p>If you want to compile every dependencies from source, please refer to <a href="http://qtandopencv.blogspot.kr/2015/09/deep-learning-04-compile-mlpack-1012-on.html" target="_blank" rel="external">this blog</a></p>
+<h2 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h2><p>The following tools are needed:</p>
+<ul>
+<li>CMake <a href="https://cmake.org/download/" target="_blank" rel="external">Windows win64-x64 Installer</a></li>
+<li>Visual Studio 2015 (Visual Studio 2013 lacks some powerful C++11 features, that mlpack uses.)</li>
+</ul>
+<h2 id="Step-1-Download-mlpack"><a href="#Step-1-Download-mlpack" class="headerlink" title="Step 1, Download mlpack."></a>Step 1, Download mlpack.</h2><p>First, create a project folder. For this example, I used <code>C:/projects/</code> folder. And download the latest stable version of mlpack and place it under projects folder. So the folder structure now becomes <code>C:/projects/mlpack-2.0.1/</code>.</p>
+<p><code>Warning</code>: I got unsuccessful with 2.0.1 release. Instead, download from the <a href="https://github.com/mlpack/mlpack" target="_blank" rel="external">master branch on github</a>.</p>
+<h2 id="Step-2-Setup-mlpack-in-Visual-Studio-and-download-some-dependencies-using-NuGet"><a href="#Step-2-Setup-mlpack-in-Visual-Studio-and-download-some-dependencies-using-NuGet" class="headerlink" title="Step 2. Setup mlpack in Visual Studio and download some dependencies using NuGet."></a>Step 2. Setup mlpack in Visual Studio and download some dependencies using NuGet.</h2><p><img src="/images/mlpack-on-windows/1.png" alt="step2-1"></p>
+<p>open Visual Studio and click <code>File &gt; New &gt; Project from Existing Code</code>.</p>
+<p><img src="/images/mlpack-on-windows/2.png" alt="step2-2"><br><img src="/images/mlpack-on-windows/3.png" alt="step2-3"></p>
+<p>Select Visual C++ (not that important) and select the file location (in this case, <code>C:/projects/mlpack-2.0.1/</code>). Give any project name (can be anything, but I used mlpack for this example) and click <code>Finish</code>.</p>
+<p>Next, it is time to download the dependencies using NuGet. NuGet is something like apt-get for debian. It makes things a lot easier and less time consuming.</p>
+<p><img src="/images/mlpack-on-windows/4.png" alt="step2-4"></p>
+<p>Go to <code>Tools &gt; NuGet Package Manager &gt; Manage NuGet Packages for Solution</code> and click <code>Browse</code> tab.</p>
+<p><img src="/images/mlpack-on-windows/5.png" alt="step2-5"></p>
+<p>I want to download OpenBLAS so search for it and click the project (mlpack) which you want to apply.</p>
+<p><img src="/images/mlpack-on-windows/9.png" alt="step2-9"></p>
+<p>You can search for the names of the dependencies to download. If somehow you don’t see NuGet Package Manager on your menu, you need to install <a href="https://visualstudiogallery.msdn.microsoft.com/5d345edc-2e2d-4a9c-b73b-d53956dc458d" target="_blank" rel="external">NuGet for Visual Studio</a>.</p>
+<p>Do the same for the following dependencies.</p>
+<ul>
+<li>boost</li>
+<li>boost_unit_test_framework-vc140</li>
+<li>boost_program_options-vc140</li>
+<li>boost_random-vc140</li>
+<li>boost_serialization-vc140</li>
+<li>boost_math_c99-vc140</li>
+<li>OpenBLAS</li>
+</ul>
+<p><img src="/images/mlpack-on-windows/10.png" alt="step2-10"></p>
+<p>When you are done, you should see the packages installed in <code>C:projects/mlpack-2.0.1/packages</code>. To make them easier to work with CMake, you should gather all boost libraries into one folder. To do that, make a new folder named <code>boost_libs</code> under <code>packages</code> folder.</p>
+<p>Now copy and paste everything (total of 5) under the following folders to <code>boost_libs</code></p>
+<ul>
+<li>boost_math_c99-vc140.1.60.0.0/lib/native/address-model-64/lib</li>
+<li>boost_program_options-vc140.1.60.0.0/lib/native/address-model-64/lib</li>
+<li>boost_unit_test_framework-vc140.1.60.0.0/lib/native/address-model-64/lib</li>
+<li>boost_serialization-vc140.1.60.0.0/lib/native/address-model-64/lib</li>
+<li>boost_random-vc140.1.60.0.0/lib/native/address-model-64/lib</li>
+</ul>
+<p>now <code>boost_libs</code> should look like the following picture.</p>
+<p><img src="/images/mlpack-on-windows/12.png" alt="step2-12"></p>
+<h2 id="Step-3-Download-Armadillo-and-Build-it"><a href="#Step-3-Download-Armadillo-and-Build-it" class="headerlink" title="Step 3, Download Armadillo and Build it."></a>Step 3, Download Armadillo and Build it.</h2><p>Unfortunately, there is no NuGet package of Armadillo. So we need to build it manually.</p>
+<p>Download the latest stable version of <a href="http://arma.sourceforge.net/download.html" target="_blank" rel="external">Armadillo</a>. As a courtesy, the Armadillo package contains pre-compiled 64bit versions of standard LAPACK and BLAS. You extract it anywhere, but for this example I extracted it under <code>C:/projects/</code> folder. <code>projects</code> folder now cotains <code>armadillo-7.100.3</code> and <code>mlpack-2.0.1</code></p>
+<p>Under <code>armadillo-7.100.3</code>, create a new folder named <code>build</code>. And now go to command prompt by pressing windows button and typing cmd. Make sure you can use cmake in the command prompt.<br>go to the <code>build</code> folder you just made, and copy and paste the following (all in one line).</p>
+<p><img src="/images/mlpack-on-windows/13.png" alt="step3-13"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cmake -G &quot;Visual Studio 14 2015 Win64&quot; -DBLAS_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot; -DLAPACK_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot; -DCMAKE_PREFIX:FILEPATH=&quot;C:/projects/armadillo&quot; -DBUILD_SHARED_LIBS=OFF ..</div></pre></td></tr></table></figure>
+<p>If you used different directories other than ones used in this example, you must change the input accordingly. I broke the lines so that it is easier for you to edit.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">cmake</div><div class="line">-G &quot;Visual Studio 14 2015 Win64&quot;</div><div class="line">-DBLAS_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot;</div><div class="line">-DLAPACK_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot;</div><div class="line">-DCMAKE_PREFIX:FILEPATH=&quot;C:/projects/armadillo&quot;</div><div class="line">-DBUILD_SHARED_LIBS=OFF ..</div></pre></td></tr></table></figure>
+<p><img src="/images/mlpack-on-windows/14.png" alt="step3-14"></p>
+<p>Cmake then should create many files below build folder. click on <code>armadillo.sln</code> file to open with Visual Studio. Next, click “Build &gt; Build Solution” to build armadillo.<br>When you are done, close Visual Studio and go to step 4.</p>
+<h2 id="Step-4-Build-mlpack"><a href="#Step-4-Build-mlpack" class="headerlink" title="Step 4, Build mlpack."></a>Step 4, Build mlpack.</h2><p>Now you can finally build mlpack!</p>
+<p>The instructions are same as building armadillo, so it should be easier as you’ve already done it once.</p>
+<p><img src="/images/mlpack-on-windows/15.png" alt="step3-15"></p>
+<p>Copy and paste the following to the commandline.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cmake -G &quot;Visual Studio 14 2015 Win64&quot; -DBLAS_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot; -DLAPACK_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot; -DARMADILLO_INCLUDE_DIR=&quot;C:/projects/armadillo-7.100.3/include&quot; -DARMADILLO_LIBRARY:FILEPATH=&quot;C:/projects/armadillo-7.100.3/build/Debug/armadillo.lib&quot; -DBOOST_INCLUDEDIR:PATH=&quot;C:/projects/mlpack-2.0.1/packages/boost.1.60.0.0/lib/native/include&quot; -DBOOST_LIBRARYDIR:PATH=&quot;C:/projects/mlpack-2.0.1/packages/boost_libs&quot; -DDEBUG=OFF -DPROFILE=OFF ..</div></pre></td></tr></table></figure>
+<p>Again, if you used different directories along the way, you must edit it accordingly. I broke down the flags for you.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">cmake</div><div class="line">-G &quot;Visual Studio 14 2015 Win64&quot;</div><div class="line">-DBLAS_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot;</div><div class="line">-DLAPACK_LIBRARY:FILEPATH=&quot;C:/projects/mlpack-2.0.1/packages/OpenBLAS.0.2.14.1/lib/native/lib/x64/libopenblas.dll.a&quot;</div><div class="line">-DARMADILLO_INCLUDE_DIR=&quot;C:/projects/armadillo-7.100.3/include&quot;</div><div class="line">-DARMADILLO_LIBRARY:FILEPATH=&quot;C:/projects/armadillo-7.100.3/build/Debug/armadillo.lib&quot;</div><div class="line">-DBOOST_INCLUDEDIR:PATH=&quot;C:/projects/mlpack-2.0.1/packages/boost.1.60.0.0/lib/native/include&quot;</div><div class="line">-DBOOST_LIBRARYDIR:PATH=&quot;C:/projects/mlpack-2.0.1/packages/boost_libs&quot;</div><div class="line">-DDEBUG=OFF -DPROFILE=OFF ..</div></pre></td></tr></table></figure>
+<p><img src="/images/mlpack-on-windows/16.png" alt="step3-16"></p>
+<p>now open the <code>mlpack.sln</code> file (under the build folder) with Visual Studio.</p>
+<p><img src="/images/mlpack-on-windows/17.png" alt="step3-17"></p>
+<p>Click <code>Build &gt; Build Solution</code>. It is going to take a while to build. And congratulations!</p>
+<p>You just successfully built mlpack.</p>
+<p><em>notice</em></p>
+<p>if while building mlpack in a windows Visual Studio environment and you receive error C1128 go to the the specific project in Solution Explorer highlight it &gt; Next go to ‘Project’ &gt; ‘Properties’ &gt; ‘C/C++’ &gt; ‘Command Line’ and add /bigobj to ‘Additional Options. After that mlpack will build successfully on Visual Studios 15’</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;/images/mlpack-on-windows/mlpack.svg&quot; style=&quot;background-color:rgba(0,0,0,0);&quot; height=&quot;150&quot; alt=&quot;mlpack: a scalable C++ machine learning library&quot;&gt;&lt;br&gt;I usually use Vim on Ubuntu for any type of development.&lt;br&gt;Lately I tried installing mlpack on Windows 10 to try programming on Visual Studio 2015, which I heard is very good for debugging.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="mlpack" scheme="http://keon.io/categories/mlpack/"/>
+    
+    
+  </entry>
+  
+</feed>

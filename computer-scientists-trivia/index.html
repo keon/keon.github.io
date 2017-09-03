@@ -1,0 +1,307 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> Computer Scientist's Trivia · Keon's Blog</title><meta name="description" content="Computer Scientist's Trivia - Keon Kim"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://keon.io/atom.xml" title="Keon's Blog"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="https://github.com/keon" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">Computer Scientist's Trivia</h1><div class="post-info">Dec 20, 2016</div><div class="post-content"><p>It is crucial for programmers to understand how long a certain operation takes in and out of a computer. For example, fetching a word from cache, memory, disk, and from other computers.<br>Inspired by <a href="http://norvig.com/21-days.html#answers" target="_blank" rel="external">Teach Yourself Programming in Ten Years</a>, I would like to discuss this in a little more detail. (Most information is taken from <a href="https://gist.github.com/jboner/2841832" target="_blank" rel="external">here</a>)</p>
+<p>The analogy is:</p>
+<ul>
+<li>L1 Cache - There is a sandwich in front of you.</li>
+<li>L2 Cache - Walk to the kitchen and make a sandwich</li>
+<li>RAM - Drive to the store, purchase sandwich fixings, drive home and make sandwich</li>
+<li>Hard Drive - Drive to the store. purchase seeds. grow seeds, harvest lettuce, wheat, etc. Make sandwich.</li>
+</ul>
+<a id="more"></a>
+<p>To be more specific:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Latency Comparisons</th>
+<th style="text-align:right">Nanosec</th>
+<th style="text-align:right">Microsec</th>
+<th style="text-align:right">Millisec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">L1 cache reference</td>
+<td style="text-align:right">0.5</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Branch mispredict</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">L2 cache reference</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Mutex lock/unlock</td>
+<td style="text-align:right">25</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Main memory reference</td>
+<td style="text-align:right">100</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Compress 1K bytes with Zippy</td>
+<td style="text-align:right">3,000</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Send 1K bytes over 1 Gbps network</td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 4K randomly from SSD</td>
+<td style="text-align:right">150,000</td>
+<td style="text-align:right">150</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from memory</td>
+<td style="text-align:right">250,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Round trip within same datacenter</td>
+<td style="text-align:right">500,000</td>
+<td style="text-align:right">500</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from SSD</td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td style="text-align:left">Disk seek</td>
+<td style="text-align:right">10,000,000</td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">10</td>
+</tr>
+<tr>
+<td style="text-align:left">Read 1 MB sequentially from disk</td>
+<td style="text-align:right">20,000,000</td>
+<td style="text-align:right">20,000</td>
+<td style="text-align:right">20</td>
+</tr>
+<tr>
+<td style="text-align:left">Send packet CA-&gt;Netherlands-&gt;CA</td>
+<td style="text-align:right">150,000,000</td>
+<td style="text-align:right">150,000</td>
+<td style="text-align:right">150</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a>Notes</h4><ul>
+<li>1 ns = 10^-9 seconds</li>
+<li>1 us = 10^-6 seconds = 1,000 ns</li>
+<li>1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns</li>
+</ul>
+<p>It is important to have this information in mind because you have to understand what you should be optimizing for. Optimizing the CPU caching like hell will improve the web-api’s latency only a little, because most of the latency comes from the traveling time of the data.</p>
+<p>If L1 access takes a second, then reading 1 MB sequentially from disk takes about 462 days. Sending packet form California to Netherlands and back to California would take 3472 days.</p>
+<p>If visualized :</p>
+<p><img src="/images/machine-prog/latency.png" alt="latency"></p>
+<h2 id="Numbers-and-Bits"><a href="#Numbers-and-Bits" class="headerlink" title="Numbers and Bits"></a>Numbers and Bits</h2><p>These numbers come naturally to programmers. First ten powers of 2 numbers:</p>
+<p>1 2 4 8 16 32 64 128 256 512 1024</p>
+<ul>
+<li>2^10 = Kibi ~ Kilo = 10^3</li>
+<li>2^20 = Mebi ~ Mega = 10^6</li>
+<li>2^30 = Gibi ~ Giga = 10^9</li>
+<li>2^40 = Tebi ~ Tera = 10^12</li>
+</ul>
+<p>It is good to know the answers for the questions below.</p>
+<p><strong>What’s  the number  1111  1111?</strong>: 255<br><strong>What’s  1111  1111  in  Hex?</strong>: 0xff<br><strong>What’s  the number  1000  0000?</strong>: 2^7=128<br><strong>What’s  the largest 8-bit number?</strong>: 255<br><strong>How to represent negative numbers?</strong>: 2’s Complement</p>
+<h2 id="Notes-Two’s-Complement"><a href="#Notes-Two’s-Complement" class="headerlink" title="Notes - Two’s Complement"></a>Notes - Two’s Complement</h2><p>To obtain the two’s complement of X, you first obtain the one’s complement by inverting (flipping) all the bits of X, then add 1 to the one’s complement to yield the two’s complement. A negative number in two’s complement representation always has the most-significant bit set.<br>Therefore, the conversion is:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"> 128 64 32 16 8 4 2 1</div><div class="line">   0  0  0  0 0 0 1 1    =  3</div><div class="line"></div><div class="line">-128 64 32 16 8 4 2 1</div><div class="line">   1  1  1  1 1 1 0 1    = -3</div></pre></td></tr></table></figure>
+<h2 id="Byte-Ordering"><a href="#Byte-Ordering" class="headerlink" title="Byte Ordering"></a>Byte Ordering</h2><p>Conceptually, memory is a big array, addressable at each byte.</p>
+<p><em>Big Endian</em>: most significant byte in smallest address (0x01020304)<br><em>Little Endian</em>: least significant byte in smallest address (0x04030201)</p>
+<h2 id="Bit-Twiddling"><a href="#Bit-Twiddling" class="headerlink" title="Bit Twiddling"></a>Bit Twiddling</h2><p>Bitwise operations and tricks can be found in <a href="https://github.com/keonkim/awesome-bits" target="_blank" rel="external">here</a>.</p>
+<h2 id="Floating-Points"><a href="#Floating-Points" class="headerlink" title="Floating Points"></a>Floating Points</h2><p>(-1)^(sign) <em> Mantissa (aka significand) </em> 2^E</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Sign Bit</th>
+<th>Encoded E</th>
+<th>Encoded M</th>
+<th>Precision</th>
+<th>Magnitude</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single</td>
+<td>sign(1bit)</td>
+<td>exp (8-bits)</td>
+<td>frac(23-bits)</td>
+<td>2^-149</td>
+<td>2^128</td>
+</tr>
+<tr>
+<td>Double</td>
+<td>sign(1bit)</td>
+<td>exp (11-bits)</td>
+<td>frac(52-bits)</td>
+<td>2^(-1074)</td>
+<td>2^1025</td>
+</tr>
+</tbody>
+</table>
+<p>Floating points are tricky because the precision diminishes as magnitude grows and it is prone to overflow and rounding error.</p>
+<p>Many real world disasters due to floating point trickiness. Patriot Missile failed to intercept due to 0.1 rounding error (1991). Ariane 5 explosion due to overflow in converting from double to int (1996) </p>
+<h2 id="Extract-Sign-Mantissa-and-E-from-a-Float"><a href="#Extract-Sign-Mantissa-and-E-from-a-Float" class="headerlink" title="Extract Sign, Mantissa, and E from a Float"></a>Extract Sign, Mantissa, and E from a Float</h2><p>To display sign-bit, 8-bit exp field, and 23-bit frac field…</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> *f =  (<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(&amp;x);</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> sign = (* f) &gt;&gt; <span class="number">31</span>;</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="built_in">exp</span> = (* f) &lt;&lt; <span class="number">1</span> &gt;&gt; <span class="number">24</span>;</div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> frac = ((* f) &lt;&lt; <span class="number">9</span>) &gt;&gt; <span class="number">9</span>;</div></pre></td></tr></table></figure>
+<p>GCC and Clang also support an extension that lets you use a union:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">union</span> &#123;</div><div class="line">     <span class="keyword">int32_t</span> bits;</div><div class="line">     <span class="keyword">float</span> val;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">f.val = <span class="number">123.0</span>;</div><div class="line">use(f.bits)</div></pre></td></tr></table></figure></p>
+<h2 id="Special-Values"><a href="#Special-Values" class="headerlink" title="Special Values"></a>Special Values</h2><p><strong>Infinite</strong> : exp = 111…1, frac = 000…0<br>(ex., 1.0/0.0 = −1.0/−0.0 = +∞,  1.0/−0.0 = −∞)<br><strong>Not-a-Number(NaN</strong>) : exp = 111…1, frac ≠ 000…0<br>(ex., sqrt(–1), ∞ − ∞, ∞ × 0)</p>
+<h2 id="C-data-types"><a href="#C-data-types" class="headerlink" title="C data types"></a>C data types</h2><p>I personally do not think that every programmers should know C in order to succeed in programming in other langauges. However, I think it is very important to know how data is stored in C (especially pointers). This knowledge broadens the perspective of how memory and cpu works. And you’ll appreciate more on how modern languages made everything so easy.</p>
+<h2 id="Primitive-Types-in-C"><a href="#Primitive-Types-in-C" class="headerlink" title="Primitive Types in C"></a>Primitive Types in C</h2><p>It depends on OS by OS but, most commonly…</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Size (32-bit)</th>
+<th>Size (64-bit)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>char</td>
+<td>1 (8 bit)</td>
+<td>1 (8  bit)</td>
+</tr>
+<tr>
+<td>short</td>
+<td>2 (16 bit)</td>
+<td>2 (16 bit)</td>
+</tr>
+<tr>
+<td>int</td>
+<td>4 (32 bit)</td>
+<td>4 (32 bit)</td>
+</tr>
+<tr>
+<td>long</td>
+<td>8 (32 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+<tr>
+<td>float</td>
+<td>4 (32 bit)</td>
+<td>4 (32 bit)</td>
+</tr>
+<tr>
+<td>double</td>
+<td>8 (64 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+<tr>
+<td>pointer</td>
+<td>4 (32 bit)</td>
+<td>8 (64 bit)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2D-Array-vs-Array-of-Pointers"><a href="#2D-Array-vs-Array-of-Pointers" class="headerlink" title="2D Array vs. Array of  Pointers"></a>2D Array vs. Array of  Pointers</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> m[<span class="number">2</span>][<span class="number">3</span>] = &#123; &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;, &#123;<span class="number">4</span>, <span class="number">5</span>,<span class="number">6</span>&#125;&#125;;</div><div class="line"><span class="keyword">int</span> *n[<span class="number">2</span>];</div></pre></td></tr></table></figure>
+<p><em>Diagram to show the difference</em><br>m: |_|_|_|_|_|_|_|<br>n: |_|_|</p>
+<p>n[0] = &amp;m[0][0]; // equivalent to n[0] = m[0]<br>n[1] = &amp;m[1][0]; // equivalent to n[1] = m[1]</p>
+<p>what is n[0][1]? // 2<br>m[0][1]?         // same as n[0][1]</p>
+<p>What is n[1][1]? // 5<br>What is m[1][1]? // same as n[1][1]</p>
+<p>What about n[0][5]? // 6</p>
+<p>n[1] = m[0];<br>what is n[1][1] now? // 2</p>
+<p>n[1][1]++;<br>what are all elements of m? // 1 3 3 4 5 6</p>
+<p>n[1][3]++;<br>what are all elements of m? // 1 3 3 5 5 6</p>
+<h2 id="Performance-Realities"><a href="#Performance-Realities" class="headerlink" title="Performance Realities"></a>Performance Realities</h2><p>Programmers must optimize at multiple levels</p>
+<ul>
+<li>Big-O: algorithm, data representations</li>
+<li>Systems: optimize memory access, I/O, parallelize execution</li>
+</ul>
+<h2 id="Steps-of-manual-optimization"><a href="#Steps-of-manual-optimization" class="headerlink" title="Steps of manual optimization"></a>Steps of manual optimization</h2><ol>
+<li>Identify bottlenecks - Bottleneck is CPU? Disk/SSD? Network? others?</li>
+<li>Measure program performance - If CPU is the bottleneck, profile a program’s execution to figure out which code path takes the most time</li>
+</ol>
+<p>One sentence short, the biggest challenge for every programmers is: <em>how to improve performance without destroying code modularity and readability</em>. While contributing to <a href="https://github.com/mlpack/mlpack" target="_blank" rel="external">mlpack</a>, I saw maintainers giving up the use of GPU for performance improvements because it made the code too messy and unmaintainable.</p>
+<p>You cannot rely on compiler optimization because compiler must generate the safe machine code that behaves same in any circumstances, which limits the scope of optimization. When in doubt, the compiler must be conservative.</p>
+<h2 id="Getting-Higher-Performance"><a href="#Getting-Higher-Performance" class="headerlink" title="Getting Higher Performance"></a>Getting Higher Performance</h2><p>Use compiler optimization flags and watch out for:</p>
+<ul>
+<li>hidden algorithmic inefficiencies</li>
+<li>Watch out for optimization blockers</li>
+<li>procedure calls &amp; memory aliasing</li>
+</ul>
+<p>Always profile the program’s performance.</p>
+<h2 id="Code-Motion"><a href="#Code-Motion" class="headerlink" title="Code Motion"></a>Code Motion</h2><ul>
+<li>Reduce frequency with which computation performed</li>
+<li>If it will always produce same result</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_row</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> i, <span class="keyword">long</span> n)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">long</span> j;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[n*i+j] = b[j];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">set_row:</div><div class="line">  testq		%rcx,		%rcx	# Test n</div><div class="line">  jle		.L1			# If 0, goto done</div><div class="line">  imulq		%rcx,		%rdx	# ni = n*i  redundant!!</div><div class="line">  leaq		(%rdi,%rdx,8),	%rdx 	# rowp = A + ni*8</div><div class="line">  movl		$0, 		%eax	# j = 0</div><div class="line">.L3:					# loop:</div><div class="line">  movsd		(%rsi,%rax,8),	%xmm0	# t = b[j]</div><div class="line">  movsd		%xmm0, 	(%rdx,%rax,8)	# M[A+ni*8 + j*8] = t</div><div class="line">  addq		$1,		%rax	# j++</div><div class="line">  cmpq		%rcx,		%rax	# j:n</div><div class="line">  jne		.L3			# if !=, goto loop</div><div class="line">.L1:					# done:</div><div class="line">  rep ; 	ret</div></pre></td></tr></table></figure></p>
+<p>To improve the performance, take the redundant multiplication out of the loop like below:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">long</span> j;</div><div class="line"><span class="keyword">int</span> ni = n*i;</div><div class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">	a[ni+j] = b[j];</div></pre></td></tr></table></figure></p>
+<h2 id="Replace-Costly-Operation-with-Simpler-One"><a href="#Replace-Costly-Operation-with-Simpler-One" class="headerlink" title="Replace Costly Operation with Simpler One"></a>Replace Costly Operation with Simpler One</h2><ul>
+<li>Shift, add instead of multiply or divide (ex: <code>16*x--&gt;x &lt;&lt; 4</code>)</li>
+<li>Recognize sequence of products</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">  <span class="keyword">int</span> ni = n*i;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[ni + j] = b[j];</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In this case, replacing the multiplication with addition improves the performance.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> ni = <span class="number">0</span>;</div><div class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">  <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">    a[ni + j] = b[j];</div><div class="line">    ni += n;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Share-Common-Subexpressions"><a href="#Share-Common-Subexpressions" class="headerlink" title="Share Common Subexpressions"></a>Share Common Subexpressions</h2><p>Reuse portions of expressions (GCC will do this with –O1).</p>
+<p>The below code has 3 multiplications: i*n, (i–1)*n, (i+1)*n.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum neighbors of i,j */</span></div><div class="line">up =    val[(i<span class="number">-1</span>)*n + j  ];</div><div class="line">down =  val[(i+<span class="number">1</span>)*n + j  ];</div><div class="line">left =  val[i*n     + j<span class="number">-1</span>];</div><div class="line">right = val[i*n     + j+<span class="number">1</span>];</div><div class="line">sum = up + down + left + right;</div></pre></td></tr></table></figure></p>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">leaq	1(%rsi),	%rax	# i+1</div><div class="line">leaq	-1(%rsi),	%r8	# i-1</div><div class="line">imulq	%rcx,		%rsi	# i*n</div><div class="line">imulq	%rcx,		%rax	# (i+1)*n</div><div class="line">imulq	%rcx,		%r8	# (i-1)*n</div><div class="line">addq	%rdx,		%rsi	# i*n+j</div><div class="line">addq	%rdx,		%rax	# (i+1)*n+j</div><div class="line">addq	%rdx,		%r8	# (i-1)*n+j</div></pre></td></tr></table></figure></p>
+<p>This code the the same work but there is only 1 multiplication in the code below: i*n.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">long</span> inj = i*n + j;</div><div class="line">up =    val[inj - n];</div><div class="line">down =  val[inj + n];</div><div class="line">left =  val[inj - <span class="number">1</span>];</div><div class="line">right = val[inj + <span class="number">1</span>];</div><div class="line">sum = up + down + left + right;</div></pre></td></tr></table></figure></p>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">imulq	%rcx,		%rsi	# i*n</div><div class="line">addq	%rdx,		%rsi	# i*n+j</div><div class="line">movq	%rsi,		%rax	# i*n+j</div><div class="line">subq	%rcx,		%rax	# i*n+j-n</div><div class="line">leaq	(%rsi,%rcx),	%rcx	# i*n+j+n</div></pre></td></tr></table></figure></p>
+<h2 id="Optimization-Blocker-1-Procedure-Calls"><a href="#Optimization-Blocker-1-Procedure-Calls" class="headerlink" title="Optimization Blocker 1. Procedure Calls"></a>Optimization Blocker 1. Procedure Calls</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">lower</span><span class="params">(<span class="keyword">char</span> *s)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">size_t</span> i;</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="built_in">strlen</span>(s); i++)</div><div class="line">    <span class="keyword">if</span> (s[i] &gt;= <span class="string">'A'</span> &amp;&amp; s[i] &lt;= <span class="string">'Z'</span>)</div><div class="line">      s[i] -= (<span class="string">'A'</span> - <span class="string">'a'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Question: What’s the big-O runtime of lower, O(n)?  </p>
+<p><img src="/images/machine-prog/lower-case-graph.png" alt="lower-case-graph"><br>Answer: Quadratic performance!</p>
+<p>Strlen takes O(n) to finish and strlen is called n times, which makes the whole function O(n^2).</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">lower2</span><span class="params">(<span class="keyword">char</span> *s)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">  <span class="keyword">size_t</span> i;</div><div class="line">  <span class="keyword">size_t</span> len = <span class="built_in">strlen</span>(s);</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</div><div class="line">    <span class="keyword">if</span> (s[i] &gt;= <span class="string">'A'</span> &amp;&amp; s[i] &lt;= <span class="string">'Z'</span>)</div><div class="line">      s[i] -= (<span class="string">'A'</span> - <span class="string">'a'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In order to remedy this, we move call to strlen outside of loop. Since result does not change from one iteration to another. The improved performance is shown below.</p>
+<p><img src="/images/machine-prog/lower-case-optimized.png" alt="lower-case-optimized"></p>
+<h2 id="Optimization-Blocker-2-Memory-Aliasing"><a href="#Optimization-Blocker-2-Memory-Aliasing" class="headerlink" title="Optimization Blocker 2. Memory Aliasing"></a>Optimization Blocker 2. Memory Aliasing</h2><p>Aliasing means when two different memory references specify single location. It is easy to happen in C since it is allowed to do address arithmetic and direct access to storage structures is possible. In order to control this, get in habit of introducing local variables. See the variables accumulating within loops.</p>
+<p>The aggressive reuse of memory is one of the ways through which programmers make code fast, and it is important for the correctness and speed of your program that you understand how a program might alias buffers.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum rows is of n X n matrix a and store in vector b  */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">sum_rows1</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> n)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> i, j;</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">      b[i] = <span class="number">0</span>;</div><div class="line">      <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)</div><div class="line">        b[i] += a[i*n + j];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># sum_rows1 inner loop</div><div class="line">.L4:</div><div class="line">        movsd   (%rsi,%rax,8),	%xmm0	# FP load</div><div class="line">        addsd   (%rdi),		%xmm0	# FP add</div><div class="line">        movsd   %xmm0,	(%rsi,%rax,8)	# FP store</div><div class="line">        addq    $8,		%rdi</div><div class="line">        cmpq    %rcx,		%rdi</div><div class="line">        jne     .L4</div></pre></td></tr></table></figure></p>
+<p>Code updates b[i] on every iteration. Programmers must consider possibility that these updates will affect program behavior. Let’s remove the aliasing like below.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Sum rows is of n X n matrix a and store in vector b  */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">sum_rows2</span><span class="params">(<span class="keyword">double</span> *a, <span class="keyword">double</span> *b, <span class="keyword">long</span> n)</span> </span>&#123;</div><div class="line">  <span class="keyword">long</span> i, j;</div><div class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</div><div class="line">    <span class="keyword">int</span> val = <span class="number">0</span>;</div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; n; j++)&#123;</div><div class="line">        val += a[i*n + j];</div><div class="line">         b[i] = val;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>In assembly the above function looks like below:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># sum_rows2 inner loop</div><div class="line">.L10:</div><div class="line">        addsd   (%rdi),	%xmm0	# FP load + add</div><div class="line">        addq    $8,	%rdi</div><div class="line">        cmpq    %rax,	%rdi</div><div class="line">        jne     .L10</div></pre></td></tr></table></figure></p>
+<p>There is no need to store intermediate results anymore.</p>
+<h2 id="Memory-Layout"><a href="#Memory-Layout" class="headerlink" title="Memory Layout"></a>Memory Layout</h2><ul>
+<li>Stack<ul>
+<li>Runtime stack (8MB limit)</li>
+<li>E. g., local variables</li>
+</ul>
+</li>
+<li>Heap<ul>
+<li>Dynamically allocated as needed</li>
+<li>When call  malloc(), calloc(), new()</li>
+</ul>
+</li>
+<li>Data<ul>
+<li>Statically allocated data</li>
+<li>E.g., global vars, static vars, string constants</li>
+</ul>
+</li>
+<li>Text  / Shared Libraries<ul>
+<li>Executable machine instructions</li>
+<li>Read-only</li>
+</ul>
+</li>
+</ul>
+<p>Each memory segment can be readable, executable, writable (or none at all). Segmentation fault occurs when program tries to access illegal memory. For example, when reading from segment with no permission or writing to read-only segments of the memory.</p>
+</div></article></div></main><footer><div class="paginator"><a href="/mongodb-schema-design/" class="prev">PREV</a><a href="/mlpack-on-windows/" class="next">NEXT</a></div><div id="disqus_thread"></div><script>var disqus_shortname = "keonblog";
+var disqus_identifier = "computer-scientists-trivia/";
+var disqus_title = "Computer Scientist's Trivia";
+var disqus_url = "http://keon.io/computer-scientists-trivia/";
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><script id="dsq-count-scr" src="//keonblog.disqus.com/count.js" async></script><div class="copyright"><p>© 2016 - 2017 <a href="http://keon.io">Keon Kim</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65209371-1",'auto');ga('send','pageview');</script></body></html>
