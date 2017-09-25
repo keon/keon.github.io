@@ -1,5 +1,5 @@
 ---
-date: 2017-09-16 12:00:00
+date: 2017-09-26 12:00:00
 title: Deep Learning For Natural Language Processing
 author: Keon Kim
 categories:
@@ -12,7 +12,7 @@ By the end of the article, you will understand the thoughts and techniques behin
 
 <!--more-->
 
-## Deep Learning: RNN And LSTM
+## Deep Learning
 
 This is our special ingredient for doing what we are doing in this article. They are magical.
 
