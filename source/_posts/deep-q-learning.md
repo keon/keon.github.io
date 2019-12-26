@@ -118,21 +118,21 @@ target = reward + gamma * np.amax(model.predict(next_state))
 Keras does all the work of subtracting the target from the neural network output and squaring it. It also applies the learning rate we defined while creating the neural network model. This all happens inside the `fit()` function. This function decreases the gap between our prediction to target by the learning rate. The approximation of the Q-value converges to the true Q-value as we repeat the updating process. The loss will decrease and score will grow higher.
 
 
-The most notable features of the DQN algorithm are *remember* and *replay* methods. Both are pretty simple concepts. The original DQN architecture contains a several more tweaks for better training, but we are going to stick to a simpler version for now.
+The most notable features of the DQN algorithm are *memorize* and *replay* methods. Both are pretty simple concepts. The original DQN architecture contains a several more tweaks for better training, but we are going to stick to a simpler version for now.
 
-## Remember
+## Memorize
 
-One of the challenges for DQN is that neural network used in the algorithm tends to forget the previous experiences as it overwrites them with new experiences. So we need a list of previous experiences and observations to re-train the model with the previous experiences. We will call this array of experiences `memory` and use `remember()` function to append state, action, reward, and next state to the memory.
+One of the challenges for DQN is that neural network used in the algorithm tends to forget the previous experiences as it overwrites them with new experiences. So we need a list of previous experiences and observations to re-train the model with the previous experiences. We will call this array of experiences `memory` and use `memorize()` function to append state, action, reward, and next state to the memory.
 
 In our example, the memory list will have a form of:
 ```python
 memory = [(state, action, reward, next_state, done)...]
 ```
 
-And remember function will simply store states, actions and resulting rewards to the memory like below:
+And memorize function will simply store states, actions and resulting rewards to the memory like below:
 
 ```python
-def remember(self, state, action, reward, next_state, done):
+def memorize(self, state, action, reward, next_state, done):
     self.memory.append((state, action, reward, next_state, done))
 ```
 
@@ -238,7 +238,7 @@ class DQNAgent:
                       optimizer=Adam(lr=self.learning_rate))
         return model
 
-    def remember(self, state, action, reward, next_state, done):
+    def memorize(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
@@ -295,8 +295,8 @@ if __name__ == "__main__":
             next_state, reward, done, _ = env.step(action)
             next_state = np.reshape(next_state, [1, 4])
 
-            # Remember the previous state, action, reward, and done
-            agent.remember(state, action, reward, next_state, done)
+            # memorize the previous state, action, reward, and done
+            agent.memorize(state, action, reward, next_state, done)
 
             # make next_state the new current state for the next frame.
             state = next_state
