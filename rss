@@ -11,16 +11,16 @@
           <pubDate>Tue, 12 Nov 2024 00:00:00 GMT</pubDate>
         </item>
 <item>
+          <title>Deep Q-Learning with Keras and Gym</title>
+          <link>https://portfolio-blog-starter.vercel.app/writing/deep-q-learning</link>
+          <description>Learn how to implement deep reinforcement learning (deep Q-learning) to play CartPole game using Keras and Gym in less than 100 lines of code.</description>
+          <pubDate>Mon, 06 Feb 2017 00:00:00 GMT</pubDate>
+        </item>
+<item>
           <title>Rules of Thumb for MongoDB Schema Design</title>
           <link>https://portfolio-blog-starter.vercel.app/writing/mongodb-schema-design</link>
           <description>A practical guide to structuring MongoDB schemas for One-to-Many relationships with three different approaches.</description>
           <pubDate>Wed, 11 Jan 2017 00:00:00 GMT</pubDate>
-        </item>
-<item>
-          <title>Deep Q-Learning with Keras and Gym</title>
-          <link>https://portfolio-blog-starter.vercel.app/writing/deep-q-learning</link>
-          <description>Learn how to implement deep reinforcement learning (deep Q-learning) to play CartPole game using Keras and Gym in less than 100 lines of code.</description>
-          <pubDate>Sat, 10 Dec 2016 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>How to install mlpack on windows</title>
