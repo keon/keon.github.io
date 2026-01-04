@@ -1,0 +1,3 @@
+User-Agent: *
+
+Sitemap: https://portfolio-blog-starter.vercel.app/sitemap.xml
