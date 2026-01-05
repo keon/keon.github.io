@@ -5,12 +5,6 @@
         <link>https://keon.github.io</link>
         <description>Writing about AI, deep learning, reinforcement learning, and software engineering.</description>
         <item>
-          <title>test1</title>
-          <link>https://keon.github.io/writing/test1</link>
-          <description>test1</description>
-          <pubDate>Tue, 12 Nov 2024 00:00:00 GMT</pubDate>
-        </item>
-<item>
           <title>Deep Q-Learning with Keras and Gym</title>
           <link>https://keon.github.io/writing/deep-q-learning</link>
           <description>Learn how to implement deep reinforcement learning (deep Q-learning) to play CartPole game using Keras and Gym in less than 100 lines of code.</description>
