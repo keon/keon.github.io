@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
   <rss version="2.0">
     <channel>
-        <title>My Portfolio</title>
-        <link>https://portfolio-blog-starter.vercel.app</link>
-        <description>This is my portfolio RSS feed</description>
+        <title>Keon Kim's Blog</title>
+        <link>https://keon.github.io</link>
+        <description>Writing about AI, deep learning, reinforcement learning, and software engineering.</description>
         <item>
           <title>test1</title>
-          <link>https://portfolio-blog-starter.vercel.app/writing/test1</link>
+          <link>https://keon.github.io/writing/test1</link>
           <description>test1</description>
           <pubDate>Tue, 12 Nov 2024 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>Deep Q-Learning with Keras and Gym</title>
-          <link>https://portfolio-blog-starter.vercel.app/writing/deep-q-learning</link>
+          <link>https://keon.github.io/writing/deep-q-learning</link>
           <description>Learn how to implement deep reinforcement learning (deep Q-learning) to play CartPole game using Keras and Gym in less than 100 lines of code.</description>
           <pubDate>Mon, 06 Feb 2017 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>Rules of Thumb for MongoDB Schema Design</title>
-          <link>https://portfolio-blog-starter.vercel.app/writing/mongodb-schema-design</link>
+          <link>https://keon.github.io/writing/mongodb-schema-design</link>
           <description>A practical guide to structuring MongoDB schemas for One-to-Many relationships with three different approaches.</description>
           <pubDate>Wed, 11 Jan 2017 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>How to install mlpack on windows</title>
-          <link>https://portfolio-blog-starter.vercel.app/writing/mlpack-on-windows</link>
+          <link>https://keon.github.io/writing/mlpack-on-windows</link>
           <description>A guide to building and installing mlpack on Windows 10 using Visual Studio 2015.</description>
           <pubDate>Sun, 27 Nov 2016 00:00:00 GMT</pubDate>
         </item>

@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
 3:I[98427,["/_next/static/chunks/fec5ea6183d0e55b.js","/_next/static/chunks/3b60e5197848a126.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"a9qOdEN0iEiYT65OJKETg","rsc":["$","$1","c",{"children":["$L2",null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"pxmaZ8R9uNHivvKnsAXKd","rsc":["$","$1","c",{"children":["$L2",null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
 2:E{"digest":"NEXT_REDIRECT;replace;/writing/mongodb-schema-design;307;"}
