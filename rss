@@ -5,6 +5,12 @@
         <link>https://keon.github.io</link>
         <description>Writing about AI, deep learning, reinforcement learning, and software engineering.</description>
         <item>
+          <title>Clear Technical Writing</title>
+          <link>https://keon.github.io/writing/clear-technical-writing</link>
+          <description>Principles for technical writing that prioritizes the reader over the writer</description>
+          <pubDate>Mon, 23 Jun 2025 00:00:00 GMT</pubDate>
+        </item>
+<item>
           <title>Type 2 Decisions</title>
           <link>https://keon.github.io/writing/type-2-decisions</link>
           <description>Why almost every technical decision is reversible when you're pre-PMF</description>
