@@ -2,35 +2,35 @@
   <rss version="2.0">
     <channel>
         <title>Keon Kim's Blog</title>
-        <link>https://keon.github.io</link>
+        <link>https://keon.kim</link>
         <description>Writing about AI, deep learning, reinforcement learning, and software engineering.</description>
         <item>
           <title>Clear Technical Writing</title>
-          <link>https://keon.github.io/writing/clear-technical-writing</link>
+          <link>https://keon.kim/writing/clear-technical-writing</link>
           <description>Principles for technical writing that prioritizes the reader over the writer</description>
           <pubDate>Mon, 23 Jun 2025 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>Type 2 Decisions</title>
-          <link>https://keon.github.io/writing/type-2-decisions</link>
+          <link>https://keon.kim/writing/type-2-decisions</link>
           <description>Why almost every technical decision is reversible when you're pre-PMF</description>
           <pubDate>Tue, 21 Jan 2025 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>Deep Q-Learning with Keras and Gym</title>
-          <link>https://keon.github.io/writing/deep-q-learning</link>
+          <link>https://keon.kim/writing/deep-q-learning</link>
           <description>Learn how to implement deep reinforcement learning (deep Q-learning) to play CartPole game using Keras and Gym in less than 100 lines of code.</description>
           <pubDate>Mon, 06 Feb 2017 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>Rules of Thumb for MongoDB Schema Design</title>
-          <link>https://keon.github.io/writing/mongodb-schema-design</link>
+          <link>https://keon.kim/writing/mongodb-schema-design</link>
           <description>A practical guide to structuring MongoDB schemas for One-to-Many relationships with three different approaches.</description>
           <pubDate>Wed, 11 Jan 2017 00:00:00 GMT</pubDate>
         </item>
 <item>
           <title>How to install mlpack on windows</title>
-          <link>https://keon.github.io/writing/mlpack-on-windows</link>
+          <link>https://keon.kim/writing/mlpack-on-windows</link>
           <description>A guide to building and installing mlpack on Windows 10 using Visual Studio 2015.</description>
           <pubDate>Sun, 27 Nov 2016 00:00:00 GMT</pubDate>
         </item>

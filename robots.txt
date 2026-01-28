@@ -4,5 +4,5 @@ Disallow: /api/
 Disallow: /login/
 Disallow: /cv/
 
-Host: https://keon.github.io
-Sitemap: https://keon.github.io/sitemap.xml
+Host: https://keon.kim
+Sitemap: https://keon.kim/sitemap.xml
