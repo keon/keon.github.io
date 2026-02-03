@@ -1,3 +1,15 @@
+User-Agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /login/
+Disallow: /cv/
+
+User-Agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /login/
+Disallow: /cv/
+
 User-Agent: *
 Allow: /
 Disallow: /api/
