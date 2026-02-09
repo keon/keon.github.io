@@ -5,9 +5,9 @@
         <link>https://keon.kim</link>
         <description>Writing about AI, deep learning, reinforcement learning, and software engineering.</description>
         <item>
-          <title>Motivating LLMs for Better Output</title>
-          <link>https://keon.kim/writing/motivating-llm</link>
-          <description>I tested whether psychological prompting (threats, bribes, flattery) improves LLM output. Neutral prompts consistently won—but open questions remain.</description>
+          <title>The Prompt Psychology Myth</title>
+          <link>https://keon.kim/writing/prompt-psychology-myth</link>
+          <description>Flattery, Bribes, and Threats Don't Really Make LLMs Better</description>
           <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
         </item>
 <item>
