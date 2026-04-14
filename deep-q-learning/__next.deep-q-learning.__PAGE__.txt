@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-3:I[98427,["/_next/static/chunks/fec5ea6183d0e55b.js","/_next/static/chunks/bc86577ec4db8d5c.js"],"OutletBoundary"]
+3:I[13257,["/_next/static/chunks/0ajw03dew4zb1.js","/_next/static/chunks/13edj5e~dvf_b.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"EX2EjH3vYUZnVkZ70f4pV","rsc":["$","$1","c",{"children":["$L2",null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"rsc":["$","$1","c",{"children":["$L2",null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"x1XyjF8BaxDIuJ2ElWCuK"}
 5:null
 2:E{"digest":"NEXT_REDIRECT;replace;/writing/deep-q-learning;307;"}
