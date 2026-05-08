@@ -1,4 +1,4 @@
 :HL["/_next/static/chunks/065fva94bcfsi.css","style"]
 :HL["/_next/static/media/GeistMono_Variable.p.17jn9btb_52pq.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/Geist_Variable-s.p.0-te~ja_gpvcf.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"contentType","param":{"type":"d","key":"writing","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"cost-of-code-is-going-to-zero","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"sqSjqPragOsBg2jrm-My4"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"contentType","param":{"type":"d","key":"writing","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"cost-of-code-is-going-to-zero","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"753th2ykR34iGmN3B_Ejp"}
